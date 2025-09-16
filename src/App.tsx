@@ -18,7 +18,7 @@ import { useState } from "react";
 export default function App() {
   const [currentOrderId, setCurrentOrderId] = useState<string>("");
   const isMobile = useIsMobile();
-
+//  the update about new codejsdkjashdkjashdkjahsdkjhaskjdh
   return (
     <BrowserRouter>
       
