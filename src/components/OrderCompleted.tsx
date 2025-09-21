@@ -8,7 +8,8 @@ import {
   ArrowLeft,
   Receipt,
   Heart,
-  MessageCircle
+  MessageCircle,
+  MapPin
 } from 'lucide-react';
 import { Button } from './ui/button';
 import { Card, CardContent } from './ui/card';
@@ -20,9 +21,11 @@ interface OrderCompletedProps {
   amount: number;
   onBack: () => void;
   onDone: () => void;
+  onTrackDelivery?: () => void;
+  onRebook?: () => void;
 }
 
-export function OrderCompleted({ orderId, amount, onBack, onDone }: OrderCompletedProps) {
+export function OrderCompleted({ orderId, amount, onBack, onDone, onTrackDelivery, onRebook }: OrderCompletedProps) {
   const [rating, setRating] = useState(0);
   const [hoveredRating, setHoveredRating] = useState(0);
   const [comment, setComment] = useState('');
@@ -266,23 +269,52 @@ export function OrderCompleted({ orderId, amount, onBack, onDone }: OrderComplet
           </Card>
         </motion.div>
 
-        {/* Quick Actions */}
+        {/* Primary Action Buttons */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.6 }}
-          className="grid grid-cols-2 gap-4 mb-6"
+          className="space-y-4 mb-6"
+        >
+          {/* Track Delivery Button */}
+          {onTrackDelivery && (
+            <Button 
+              onClick={onTrackDelivery}
+              className="w-full bg-green-600 hover:bg-green-700 h-14"
+            >
+              <div className="flex items-center justify-center gap-2">
+                <MapPin className="w-5 h-5" />
+                <span>Track Delivery Details</span>
+              </div>
+            </Button>
+          )}
+          
+          {/* Rebook Button */}
+          {onRebook && (
+            <Button 
+              onClick={onRebook}
+              variant="outline"
+              className="w-full h-14 border-blue-200 hover:bg-blue-50 hover:border-blue-300"
+            >
+              <div className="flex items-center justify-center gap-2">
+                <Receipt className="w-5 h-5 text-blue-600" />
+                <span className="text-blue-600">Book Another Delivery</span>
+              </div>
+            </Button>
+          )}
+        </motion.div>
+
+        {/* Quick Actions */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.7 }}
+          className="grid grid-cols-1 gap-4 mb-6"
         >
           <Button variant="outline" className="h-16">
-            <div className="text-center">
-              <Receipt className="w-5 h-5 mx-auto mb-1" />
-              <span className="text-sm">Rebook</span>
-            </div>
-          </Button>
-          <Button variant="outline" className="h-16">
-            <div className="text-center">
-              <MessageCircle className="w-5 h-5 mx-auto mb-1" />
-              <span className="text-sm">Support</span>
+            <div className="flex items-center justify-center gap-2">
+              <MessageCircle className="w-5 h-5" />
+              <span>Contact Support</span>
             </div>
           </Button>
         </motion.div>

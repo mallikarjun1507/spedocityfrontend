@@ -1,6 +1,8 @@
+"use client";
+
 import { useState } from 'react';
 import { motion } from 'motion/react';
-import { ArrowLeft, Clock, ChevronRight } from 'lucide-react';
+import { ArrowLeft, Clock, ChevronRight, Calendar as CalendarIcon } from 'lucide-react';
 import { Button } from '../ui/button';
 import { Card, CardContent } from '../ui/card';
 import { Badge } from '../ui/badge';
@@ -73,7 +75,7 @@ export function Schedule({ onNext, onBack }: ScheduleProps) {
       </div>
 
       {/* Schedule Options */}
-      <div className="flex-1 overflow-y-auto px-6 py-4 pb-32">
+      <div className="flex-1 overflow-y-auto px-6 py-4 pb-48">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -83,7 +85,7 @@ export function Schedule({ onNext, onBack }: ScheduleProps) {
           {/* Quick Schedule Options */}
           <div className="space-y-3">
             <h2 className="text-lg">When do you need delivery?</h2>
-            
+
             {/* Now Option */}
             <Card 
               className={`cursor-pointer transition-all ${
@@ -134,7 +136,7 @@ export function Schedule({ onNext, onBack }: ScheduleProps) {
               <CardContent className="p-4">
                 <div className="flex items-center gap-4">
                   <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center">
-                    <Calendar className="w-6 h-6 text-blue-600" />
+                    <CalendarIcon className="w-6 h-6 text-blue-600" />
                   </div>
                   <div className="flex-1">
                     <h3 className="text-base mb-1">Schedule for Later</h3>
@@ -157,39 +159,17 @@ export function Schedule({ onNext, onBack }: ScheduleProps) {
               {/* Date Selection */}
               <div>
                 <h3 className="text-base mb-2">Select Date</h3>
-                <Card className="bg-white">
+                <Card className="bg-white relative z-20">
                   <CardContent className="p-2">
                     <Calendar
                       mode="single"
                       selected={selectedDate}
                       onSelect={(date) => {
                         setSelectedDate(date);
-                        setSelectedTimeSlot(''); // Reset time slot when date changes
+                        setSelectedTimeSlot('');
                       }}
                       disabled={(date) => date < new Date()}
                       className="rounded-md border-0 w-full"
-                      classNames={{
-                        months: "flex flex-col sm:flex-row space-y-4 sm:space-x-4 sm:space-y-0",
-                        month: "space-y-4",
-                        caption: "flex justify-center pt-1 relative items-center",
-                        caption_label: "text-sm font-medium",
-                        nav: "space-x-1 flex items-center",
-                        nav_button: "h-7 w-7 bg-transparent p-0 opacity-50 hover:opacity-100",
-                        nav_button_previous: "absolute left-1",
-                        nav_button_next: "absolute right-1",
-                        table: "w-full border-collapse space-y-1",
-                        head_row: "flex",
-                        head_cell: "text-muted-foreground rounded-md w-8 font-normal text-[0.8rem]",
-                        row: "flex w-full mt-2",
-                        cell: "text-center text-sm p-0 relative [&:has([aria-selected])]:bg-accent first:[&:has([aria-selected])]:rounded-l-md last:[&:has([aria-selected])]:rounded-r-md focus-within:relative focus-within:z-20",
-                        day: "h-8 w-8 p-0 font-normal aria-selected:opacity-100",
-                        day_selected: "bg-blue-600 text-white hover:bg-blue-700 hover:text-white focus:bg-blue-600 focus:text-white",
-                        day_today: "bg-gray-100 text-gray-900",
-                        day_outside: "text-muted-foreground opacity-50",
-                        day_disabled: "text-muted-foreground opacity-50",
-                        day_range_middle: "aria-selected:bg-accent aria-selected:text-accent-foreground",
-                        day_hidden: "invisible",
-                      }}
                     />
                   </CardContent>
                 </Card>
@@ -201,6 +181,7 @@ export function Schedule({ onNext, onBack }: ScheduleProps) {
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.3 }}
+                  className='space-y-4 max-h-[400px] overflow-y-auto pr-2'
                 >
                   <h3 className="text-base mb-2">Select Time Slot</h3>
                   <p className="text-sm text-gray-600 mb-3">

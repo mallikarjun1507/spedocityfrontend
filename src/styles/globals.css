@@ -1,4 +1,4 @@
-@custom-variant dark (&:is(.dark *));
+dark (&:is(.dark *));
 
 :root {
   --font-size: 16px;
@@ -126,6 +126,97 @@
 
   body {
     @apply bg-background text-foreground;
+    /* Prevent body scroll on mobile when modals are open */
+    overflow-x: hidden;
+  }
+
+  /* Perfect scrolling for all devices */
+  html {
+    height: 100%;
+    overflow-x: hidden;
+  }
+
+  body {
+    height: 100%;
+    overscroll-behavior: none; /* Prevent pull-to-refresh and elastic scrolling */
+  }
+
+  /* Hide scrollbars globally while maintaining scroll functionality */
+  * {
+    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none; /* Internet Explorer 10+ */
+  }
+
+  *::-webkit-scrollbar {
+    display: none; /* Safari and Chrome */
+    width: 0;
+    background: transparent;
+  }
+
+  /* Smooth scrolling for all elements */
+  * {
+    scroll-behavior: smooth;
+  }
+
+  /* Perfect mobile scrolling */
+  @media (max-width: 768px) {
+    body {
+      -webkit-overflow-scrolling: touch; /* iOS momentum scrolling */
+      overscroll-behavior-y: none; /* Prevent overscroll bounce */
+      position: fixed;
+      width: 100%;
+      height: 100vh;
+      height: 100dvh; /* Dynamic viewport height for mobile */
+      height: 100svh; /* Small viewport height for mobile browsers */
+    }
+
+    #root {
+      height: 100vh;
+      height: 100dvh;
+      height: 100svh;
+      overflow: hidden;
+    }
+
+    /* Prevent zoom on input focus */
+    input, select, textarea {
+      font-size: 16px !important;
+    }
+
+    /* Prevent pull-to-refresh */
+    html, body {
+      overscroll-behavior: none;
+    }
+  }
+
+  /* Desktop scrolling optimizations */
+  @media (min-width: 769px) {
+    body {
+      overflow-y: auto;
+      height: 100vh;
+    }
+
+    #root {
+      height: 100vh;
+    }
+  }
+
+  /* Custom scroll container for content areas */
+  .scroll-container {
+    overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: none;
+    scroll-behavior: smooth;
+  }
+
+  /* Prevent text selection during scrolling on mobile */
+  .touch-scroll {
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
   }
 }
 

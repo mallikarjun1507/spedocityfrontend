@@ -1,9 +1,8 @@
+import { CheckCircle, Clock, CreditCard, MapPin, Package, Phone } from 'lucide-react';
 import { motion } from 'motion/react';
-import { CheckCircle, MapPin, Clock, User, Package, CreditCard, Phone } from 'lucide-react';
+import { Badge } from '../ui/badge';
 import { Button } from '../ui/button';
 import { Card, CardContent } from '../ui/card';
-import { Badge } from '../ui/badge';
-import { Separator } from '../ui/separator';
 
 interface ConfirmBookingProps {
   bookingData: {
@@ -126,12 +125,12 @@ export function ConfirmBooking({ bookingData, onComplete }: ConfirmBookingProps)
                     {getServiceName(bookingData.service)}
                   </Badge>
                 </div>
-                
+
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-gray-600">Schedule</span>
                   <span className="text-sm">{formatSchedule()}</span>
                 </div>
-                
+
                 {bookingData.helpers > 0 && (
                   <div className="flex items-center justify-between">
                     <span className="text-sm text-gray-600">Helpers</span>
@@ -154,16 +153,16 @@ export function ConfirmBooking({ bookingData, onComplete }: ConfirmBookingProps)
                   <span className="text-sm text-gray-600">Payment Method</span>
                   <span className="text-sm">{getPaymentMethodName(bookingData.paymentMethod)}</span>
                 </div>
-                
+
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-gray-600">Amount Paid</span>
                   <span className="text-lg text-green-600">₹{bookingData.totalAmount}</span>
                 </div>
-                
+
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-gray-600">Status</span>
                   <Badge className={
-                    bookingData.paymentMethod === 'cod' 
+                    bookingData.paymentMethod === 'cod'
                       ? 'bg-orange-100 text-orange-700'
                       : 'bg-green-100 text-green-700'
                   }>
@@ -225,8 +224,8 @@ export function ConfirmBooking({ bookingData, onComplete }: ConfirmBookingProps)
       <div className="fixed bottom-0 left-0 right-0 p-6 bg-white border-t space-y-3">
         <Button
           variant="outline"
-          className="w-full"
-          onClick={() => {/* Track delivery logic */}}
+          className="w-full bg-blue-600 hover:bg-blue-700"
+          onClick={onComplete}
         >
           Track Delivery
         </Button>
