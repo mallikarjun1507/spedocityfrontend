@@ -77,7 +77,7 @@ export function WalletScreen() {
       </div>
 
       {/* Scrollable Content */}
-      <div className="flex-1 overflow-y-auto">
+      <div className="flex-1 scroll-container">
         {/* Wallet Balance Card */}
         <div className="p-6">
         <motion.div
@@ -179,6 +179,42 @@ export function WalletScreen() {
               </CardContent>
             </Card>
           </div>
+        </motion.div>
+      </div>
+
+      {/* Premium Wallet Ad */}
+      <div className="px-6 pb-4">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.4 }}
+        >
+          <Card className="bg-gradient-to-r from-amber-500 to-orange-600 border-0 shadow-lg cursor-pointer overflow-hidden">
+            <CardContent className="p-4 relative">
+              <div className="absolute top-0 right-0 w-16 h-16 bg-white/10 rounded-full -translate-y-4 translate-x-4"></div>
+              <div className="absolute bottom-0 left-0 w-12 h-12 bg-white/5 rounded-full translate-y-3 -translate-x-3"></div>
+              <div className="relative z-10">
+                <div className="flex items-center justify-between">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-2">
+                      <div className="w-6 h-6 bg-white rounded-full flex items-center justify-center">
+                        <CreditCard className="w-3 h-3 text-orange-600" />
+                      </div>
+                      <Badge className="bg-white/20 text-white text-xs border-0">
+                        PREMIUM WALLET
+                      </Badge>
+                    </div>
+                    <h3 className="text-white text-sm mb-1">Upgrade to Premium</h3>
+                    <p className="text-white/90 text-xs mb-2">2% cashback on all deliveries</p>
+                    <p className="text-yellow-200 text-xs">Just ₹99/month</p>
+                  </div>
+                  <div className="w-12 h-12 bg-white/15 rounded-xl flex items-center justify-center">
+                    <TrendingUp className="w-6 h-6 text-white" />
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
         </motion.div>
       </div>
 

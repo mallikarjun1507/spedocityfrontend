@@ -24,6 +24,9 @@ type BookingStep =
 interface BookingFlowProps {
   onComplete: () => void;
   onCancel: () => void;
+  initialPickup?: string;
+  initialDropoff?: string;
+  initialViaLocations?: Array<{id: string, title: string, address: string}>;
 }
 
 interface BookingData {
@@ -38,11 +41,19 @@ interface BookingData {
   bookingId?: string;
 }
 
-export function BookingFlow({ onComplete, onCancel }: BookingFlowProps) {
-  const [currentStep, setCurrentStep] = useState<BookingStep>('pickup');
+export function BookingFlow({ onComplete, onCancel, initialPickup, initialDropoff, initialViaLocations }: BookingFlowProps) {
+  // If we have initial pickup and dropoff, skip to service selection
+  const getInitialStep = (): BookingStep => {
+    if (initialPickup && initialDropoff) {
+      return 'service';
+    }
+    return 'pickup';
+  };
+
+  const [currentStep, setCurrentStep] = useState<BookingStep>(getInitialStep());
   const [bookingData, setBookingData] = useState<BookingData>({
-    pickup: '',
-    dropoff: '',
+    pickup: initialPickup || '',
+    dropoff: initialDropoff || '',
     service: '',
     helpers: 0
   });

@@ -1,8 +1,10 @@
+import { useState } from 'react';
 import { motion } from 'motion/react';
 import { Package, Clock, CheckCircle, XCircle, Download, RotateCcw, Eye, MapPin } from 'lucide-react';
 import { Card, CardContent } from './ui/card';
 import { Badge } from './ui/badge';
 import { Button } from './ui/button';
+import { VehicleArrivingAnimation } from './VehicleArrivingAnimation';
 
 const mockOrders = [
   {
@@ -98,6 +100,8 @@ interface OrdersScreenProps {
 }
 
 export function OrdersScreen({ onTrackOrder }: OrdersScreenProps = {}) {
+  const [showVehicleAnimation, setShowVehicleAnimation] = useState(false);
+  
   const handleDownloadInvoice = (orderId: string) => {
     // Mock invoice download
     const link = document.createElement('a');
@@ -117,8 +121,33 @@ export function OrdersScreen({ onTrackOrder }: OrdersScreenProps = {}) {
   };
 
   const handleTrackOrder = (orderId: string) => {
-    if (onTrackOrder) {
+    // Show vehicle arriving animation for assigned orders
+    const order = mockOrders.find(o => o.id === orderId);
+    if (order && order.status === 'assigned') {
+      setShowVehicleAnimation(true);
+      // Auto-close after 5 seconds or when user clicks
+      const timer = setTimeout(() => {
+        setShowVehicleAnimation(false);
+        if (onTrackOrder) {
+          onTrackOrder(orderId);
+        }
+      }, 5000); // Show animation for 5 seconds
+      
+      // Store timer to clear if user closes manually
+      return () => clearTimeout(timer);
+    } else if (onTrackOrder) {
       onTrackOrder(orderId);
+    }
+  };
+
+  const handleCloseVehicleAnimation = () => {
+    setShowVehicleAnimation(false);
+    // Proceed to order tracking after animation closes
+    const currentOrder = mockOrders.find(o => o.status === 'assigned');
+    if (currentOrder && onTrackOrder) {
+      setTimeout(() => {
+        onTrackOrder(currentOrder.id);
+      }, 300); // Small delay for smooth transition
     }
   };
 
@@ -137,7 +166,7 @@ export function OrdersScreen({ onTrackOrder }: OrdersScreenProps = {}) {
       </div>
 
       {/* Orders List */}
-      <div className="flex-1 overflow-y-auto p-6 pb-24 md:pb-6">
+      <div className="flex-1 scroll-container p-6 pb-24 md:pb-6">
         <div className="space-y-4">
           {mockOrders.map((order, index) => {
             const StatusIcon = getStatusIcon(order.status);
@@ -242,6 +271,40 @@ export function OrdersScreen({ onTrackOrder }: OrdersScreenProps = {}) {
               </motion.div>
             );
           })}
+
+          {/* Subscription Service Ad */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3, delay: 0.5 }}
+          >
+            <Card className="bg-gradient-to-r from-indigo-600 to-purple-600 border-0 shadow-lg cursor-pointer overflow-hidden">
+              <CardContent className="p-4 relative">
+                <div className="absolute top-0 right-0 w-20 h-20 bg-white/10 rounded-full -translate-y-6 translate-x-6"></div>
+                <div className="absolute bottom-0 left-0 w-16 h-16 bg-white/5 rounded-full translate-y-4 -translate-x-4"></div>
+                <div className="relative z-10">
+                  <div className="flex items-center justify-between">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-2">
+                        <div className="w-6 h-6 bg-yellow-400 rounded-full flex items-center justify-center">
+                          <span className="text-xs">🚀</span>
+                        </div>
+                        <Badge className="bg-white/20 text-white text-xs border-0">
+                          SUBSCRIPTION
+                        </Badge>
+                      </div>
+                      <h3 className="text-white text-sm mb-1">Business Plan</h3>
+                      <p className="text-white/90 text-xs mb-2">Unlimited monthly deliveries</p>
+                      <p className="text-yellow-300 text-xs">Save up to 60%</p>
+                    </div>
+                    <div className="w-12 h-12 bg-white/15 rounded-xl flex items-center justify-center">
+                      <Package className="w-6 h-6 text-white" />
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
         </div>
 
         {mockOrders.length === 0 && (
@@ -259,6 +322,15 @@ export function OrdersScreen({ onTrackOrder }: OrdersScreenProps = {}) {
           </motion.div>
         )}
       </div>
+
+      {/* Vehicle Arriving Animation */}
+      <VehicleArrivingAnimation
+        isVisible={showVehicleAnimation}
+        vehicleType="car"
+        driverName="Rajesh Kumar"
+        eta="8 minutes"
+        onClose={handleCloseVehicleAnimation}
+      />
     </div>
   );
 }

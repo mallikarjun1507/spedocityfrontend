@@ -1,232 +1,212 @@
-import { useState } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
-import { Home, Package, Wallet, Bell, User, Menu, X } from 'lucide-react';
-import { Button } from './ui/button';
+import { Bell, ChevronLeft, ChevronRight, Home, Package, User, Wallet } from 'lucide-react';
+import { AnimatePresence, motion } from 'motion/react';
 
 interface SidebarProps {
   activeTab: string;
   onTabChange: (tab: string) => void;
+  expanded: boolean;
+  onToggle: () => void;
 }
 
 const navItems = [
-  {
-    id: 'home',
-    label: 'Home',
-    icon: Home,
-    description: 'Dashboard & Quick Actions'
-  },
-  {
-    id: 'orders',
-    label: 'Orders',
-    icon: Package,
-    description: 'Track Your Deliveries'
-  },
-  {
-    id: 'wallet',
-    label: 'Wallet',
-    icon: Wallet,
-    description: 'Payments & Balance'
-  },
-  {
-    id: 'notifications',
-    label: 'Notifications',
-    icon: Bell,
-    description: 'Alerts & Updates'
-  },
-  {
-    id: 'profile',
-    label: 'Profile',
-    icon: User,
-    description: 'Account Settings'
-  }
+  { id: 'home', label: 'Home', icon: Home, description: 'Dashboard & quick booking' },
+  { id: 'orders', label: 'Orders', icon: Package, description: 'Track your deliveries' },
+  { id: 'wallet', label: 'Wallet', icon: Wallet, description: 'Payments & transactions' },
+  { id: 'notifications', label: 'Notifications', icon: Bell, description: 'Alerts & updates' },
+  { id: 'profile', label: 'Profile', icon: User, description: 'Account settings' }
 ];
 
-export function Sidebar({ activeTab, onTabChange }: SidebarProps) {
-  const [isExpanded, setIsExpanded] = useState(false);
-
-  const toggleSidebar = () => {
-    setIsExpanded(!isExpanded);
-  };
-
+export function Sidebar({ activeTab, onTabChange, expanded, onToggle }: SidebarProps) {
   return (
-    <>
-      {/* Hamburger Menu Button - Always visible */}
-      <div className="fixed top-4 left-4 z-50 hidden md:block">
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={toggleSidebar}
-          className="w-10 h-10 p-0 bg-white shadow-md hover:bg-gray-50 border border-gray-200"
-        >
+    <motion.div
+      initial={{ width: 80 }}
+      animate={{ width: expanded ? 256 : 80 }}
+      transition={{ duration: 0.3, ease: "easeInOut" }}
+      className="h-full bg-white/95 backdrop-blur-md border-r border-gray-200/50 z-40 hidden md:flex flex-col shadow-sm overflow-hidden"
+    >
+      {/* Logo/Brand Section */}
+      <div className="flex items-center justify-between p-6 border-b border-gray-200/50 min-h-[88px]">
+        <div className="flex items-center gap-3">
           <motion.div
-            animate={{ rotate: isExpanded ? 90 : 0 }}
-            transition={{ duration: 0.3 }}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            className="w-12 h-12 bg-gradient-to-br from-blue-600 to-purple-600 rounded-2xl flex items-center justify-center cursor-pointer shadow-lg flex-shrink-0"
           >
-            {isExpanded ? (
-              <X className="w-5 h-5 text-gray-700" />
-            ) : (
-              <Menu className="w-5 h-5 text-gray-700" />
-            )}
+            <span className="text-white font-bold text-xl">S</span>
           </motion.div>
-        </Button>
+
+          <AnimatePresence>
+            {expanded && (
+              <motion.div
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                transition={{ duration: 0.2, delay: 0.1 }}
+                className="flex flex-col"
+              >
+                <span className="font-bold text-lg text-gray-900">Spedocity</span>
+                <span className="text-xs text-gray-500">Speed. Safety. Spedocity.</span>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+
+        {/* ✅ Fixed Toggle Button: always visible */}
+        <motion.button
+          onClick={onToggle}
+          whileHover={{ scale: 1.1 }}
+          whileTap={{ scale: 0.9 }}
+          className="w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition-colors"
+        >
+          {expanded ? (
+            <ChevronLeft className="w-4 h-4 text-gray-600" />
+          ) : (
+            <ChevronRight className="w-4 h-4 text-gray-600" />
+          )}
+        </motion.button>
       </div>
 
-      {/* Sidebar Overlay */}
-      <AnimatePresence>
-        {isExpanded && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.3 }}
-            className="fixed inset-0 bg-black/20 backdrop-blur-sm z-40 hidden md:block"
-            onClick={toggleSidebar}
-          />
-        )}
-      </AnimatePresence>
-
-      {/* Sidebar Panel */}
-      <AnimatePresence>
-        {isExpanded && (
-          <motion.div
-            initial={{ x: -320, opacity: 0 }}
-            animate={{ x: 0, opacity: 1 }}
-            exit={{ x: -320, opacity: 0 }}
-            transition={{ 
-              duration: 0.3,
-              ease: [0.4, 0, 0.2, 1]
-            }}
-            className="fixed left-0 top-0 h-full w-80 bg-white border-r border-gray-200 z-50 flex flex-col shadow-2xl hidden md:flex"
-          >
-            {/* Header */}
-            <div className="p-6 border-b border-gray-200">
+      {/* Navigation Items */}
+      <div className="flex-1 flex flex-col justify-center py-8">
+        <nav className="space-y-2 px-4">
+          {navItems.map((item, index) => {
+            const isActive = activeTab === item.id;
+            return (
               <motion.div
-                initial={{ opacity: 0, y: -10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.3, delay: 0.1 }}
-                className="flex items-center gap-3"
+                key={item.id}
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.3, delay: index * 0.1 }}
               >
-                <div className="w-12 h-12 bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl flex items-center justify-center">
-                  <span className="text-white font-bold text-xl">S</span>
-                </div>
-                <div>
-                  <h1 className="text-xl font-semibold text-gray-900">Spedocity</h1>
-                  <p className="text-sm text-gray-500">Speed. Safety. Spedocity.</p>
-                </div>
-              </motion.div>
-            </div>
-
-            {/* Navigation Items */}
-            <div className="flex-1 py-6">
-              <nav className="space-y-2 px-4">
-                {navItems.map((item, index) => {
-                  const isActive = activeTab === item.id;
-                  return (
+                <motion.button
+                  onClick={() => {
+                    onTabChange(item.id);      // change tab
+                    if (!expanded) onToggle(); // ✅ auto-expand when collapsed
+                  }}
+                  whileHover={{ scale: 1.02, x: 4 }}
+                  whileTap={{ scale: 0.98 }}
+                  className={`relative w-full rounded-2xl flex items-center transition-all duration-300 cursor-pointer group ${expanded ? 'p-4 h-16' : 'p-3 h-12 justify-center'
+                    } ${isActive
+                      ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/25'
+                      : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
+                    }`}
+                >
+                  {/* Active background */}
+                  {isActive && (
                     <motion.div
-                      key={item.id}
-                      initial={{ opacity: 0, x: -20 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ 
-                        duration: 0.3, 
-                        delay: 0.1 + (index * 0.05)
-                      }}
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.98 }}
-                    >
-                      <button
-                        onClick={() => {
-                          onTabChange(item.id);
-                          setIsExpanded(false); // Close sidebar after selection
-                        }}
-                        className={`w-full flex items-center gap-4 px-4 py-3 rounded-xl transition-all duration-200 relative overflow-hidden ${
-                          isActive 
-                            ? 'bg-blue-50 text-blue-700 shadow-sm border border-blue-200' 
-                            : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
-                        }`}
+                      layoutId="sidebarActiveBackground"
+                      className="absolute inset-0 bg-blue-600 rounded-2xl"
+                      transition={{ type: "spring", stiffness: 500, damping: 30 }}
+                    />
+                  )}
+
+                  {/* Hover background */}
+                  {!isActive && (
+                    <div className="absolute inset-0 bg-gray-100 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
+                  )}
+
+                  {/* Icon */}
+                  <motion.div
+                    className="relative z-10 flex-shrink-0"
+                    animate={{ scale: isActive ? 1.1 : 1 }}
+                    transition={{ duration: 0.2 }}
+                  >
+                    <item.icon className={`w-5 h-5 ${isActive ? 'text-white' : 'text-gray-600'}`} />
+
+                    {/* Badges */}
+                    {item.id === 'orders' && (
+                      <motion.div
+                        initial={{ scale: 0 }}
+                        animate={{ scale: 1 }}
+                        className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center font-medium shadow-sm"
                       >
-                        {/* Active indicator */}
-                        {isActive && (
-                          <motion.div
-                            layoutId="activeIndicator"
-                            className="absolute left-0 top-0 h-full w-1 bg-blue-600 rounded-r"
-                            transition={{ duration: 0.3 }}
-                          />
-                        )}
-                        
-                        {/* Icon */}
-                        <motion.div
-                          animate={{
-                            scale: isActive ? 1.1 : 1,
-                            color: isActive ? '#2563eb' : undefined
-                          }}
-                          transition={{ duration: 0.2 }}
-                          className="flex-shrink-0 relative"
-                        >
-                          <item.icon className="w-6 h-6" />
-                          
-                          {/* Notification badges */}
-                          {item.id === 'orders' && (
-                            <div className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center font-medium">
-                              2
-                            </div>
-                          )}
-                          {item.id === 'notifications' && (
-                            <div className="absolute -top-1 -right-1 bg-blue-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center font-medium">
-                              5
-                            </div>
-                          )}
-                        </motion.div>
+                        2
+                      </motion.div>
+                    )}
+                    {item.id === 'notifications' && (
+                      <motion.div
+                        initial={{ scale: 0 }}
+                        animate={{ scale: 1 }}
+                        className="absolute -top-1 -right-1 bg-blue-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center font-medium shadow-sm"
+                      >
+                        5
+                      </motion.div>
+                    )}
+                  </motion.div>
 
-                        {/* Label and description */}
-                        <div className="flex-1 text-left min-w-0">
-                          <div className="text-base font-medium truncate">
-                            {item.label}
-                          </div>
-                          <div className="text-sm text-gray-500 truncate">
-                            {item.description}
-                          </div>
+                  {/* Label + Description */}
+                  <AnimatePresence>
+                    {expanded && (
+                      <motion.div
+                        initial={{ opacity: 0, x: -10 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        exit={{ opacity: 0, x: -10 }}
+                        transition={{ duration: 0.2, delay: 0.05 }}
+                        className="ml-4 flex-1 text-left relative z-10"
+                      >
+                        <div className={`text-sm  font-medium ${isActive ? 'text-black' : 'text-gray-900'}`}>
+                          {item.label}
                         </div>
-                      </button>
-                    </motion.div>
-                  );
-                })}
-              </nav>
-            </div>
+                        <div className={`text-xs ${isActive ? 'text-gray-200' : 'text-gray-500'}`}>
+                          {item.description}
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
 
-            {/* Bottom section */}
-            <div className="p-6 border-t border-gray-200">
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.3, delay: 0.3 }}
-                className="bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 rounded-xl p-4"
-              >
-                <div className="text-center">
-                  <div className="text-base font-medium text-blue-900 mb-1">
-                    Get Premium
-                  </div>
-                  <div className="text-sm text-blue-700 mb-3">
-                    Unlock exclusive features
-                  </div>
-                  <Button size="sm" className="w-full bg-blue-600 hover:bg-blue-700 text-white">
-                    Upgrade Now
-                  </Button>
-                </div>
+                  {/* Tooltip when collapsed */}
+                  {!expanded && (
+                    <div className="absolute left-full ml-3 px-3 py-2 bg-gray-900 text-black text-sm rounded-lg opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity duration-200 whitespace-nowrap z-50">
+                      <div className="absolute right-full top-1/2 -translate-y-1/2 border-4 border-transparent border-r-gray-900"></div>
+                    </div>
+                  )}
+                </motion.button>
               </motion.div>
+            );
+          })}
+        </nav>
+      </div>
 
-              {/* Version info */}
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ duration: 0.3, delay: 0.4 }}
-                className="text-center text-sm text-gray-400 mt-4"
-              >
-                Spedocity v1.0.0
-              </motion.div>
-            </div>
+      {/* Bottom Section */}
+      <div className="flex items-center justify-center py-6 border-t border-gray-200/50">
+        <div className="flex items-center gap-3">
+          <motion.div
+            whileHover={{ scale: 1.05, rotate: 5 }}
+            whileTap={{ scale: 0.95 }}
+            className="w-8 h-8 bg-gradient-to-br from-purple-500 to-pink-500 rounded-xl flex items-center justify-center cursor-pointer group flex-shrink-0"
+          >
+            <div className="w-2 h-2 bg-white rounded-full"></div>
+
+            {!expanded && (
+              <div className="absolute left-full ml-3 px-2 py-1 bg-gray-900 text-black text-xs rounded-md opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity duration-200 whitespace-nowrap z-50">
+                Settings
+                <div className="absolute right-full top-1/2 -translate-y-1/2 border-4 border-transparent border-r-gray-900"></div>
+              </div>
+            )}
           </motion.div>
-        )}
-      </AnimatePresence>
-    </>
+
+          <AnimatePresence>
+            {expanded && (
+              <motion.div
+                initial={{ opacity: 0, x: -10 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -10 }}
+                transition={{ duration: 0.2 }}
+                className="text-sm text-gray-600 cursor-pointer hover:text-gray-900"
+              >
+                Settings
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+      </div>
+
+      {/* Decorative indicator line */}
+      <motion.div
+        className="absolute right-0 top-0 w-1 bg-blue-600 rounded-l-full"
+        animate={{ height: '100%', opacity: 0.1 }}
+        transition={{ duration: 0.3 }}
+      />
+    </motion.div>
   );
 }
