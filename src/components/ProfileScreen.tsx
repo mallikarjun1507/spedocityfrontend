@@ -29,7 +29,7 @@ import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Label } from './ui/label';
 import { Textarea } from './ui/textarea';
-
+import { useAuth } from '../contexts/AuthContext';
 const menuItems = [
   {
     id: 'profile',
@@ -94,14 +94,16 @@ const menuItems = [
 
 export function ProfileScreen() {
   const [activeScreen, setActiveScreen] = useState<string | null>(null);
-  
+  const {logout} = useAuth()
   const userName = "John Doe";
   const userEmail = "john.doe@example.com";
   const userPhone = "+91 98765 43210";
   const userRating = 4.8;
   const totalDeliveries = 23;
   const walletBalance = 1250;
-
+  const handleLogOut = () =>{
+    logout();
+  }
   const handleMenuClick = (itemId: string) => {
     if (itemId === 'addresses' || itemId === 'referrals' || itemId === 'support' || itemId === 'profile' || itemId === 'wallet') {
       setActiveScreen(itemId);
@@ -271,7 +273,7 @@ export function ProfileScreen() {
             className="mt-8"
           >
             <Card className="bg-white border-0 shadow-sm cursor-pointer hover:shadow-md transition-shadow">
-              <CardContent className="p-4">
+              <CardContent className="p-4" onClick={handleLogOut}>
                 <div className="flex items-center justify-center">
                   <span className="text-sm text-red-600">Sign Out</span>
                 </div>

@@ -11,6 +11,7 @@ import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import axios from "axios";
 import { useAuth } from '../contexts/AuthContext';
+import { useNavigate } from 'react-router-dom';
 interface LoginSignupProps {
   onBack: () => void;
   onComplete: () => void;
@@ -21,6 +22,7 @@ type AuthStep = 'input' | 'otp-sent' | 'otp-verified' | 'google-auth';
 
 export function LoginSignup({ onBack, onComplete }: LoginSignupProps) {
   const { login } = useAuth();
+  const navigate = useNavigate();
   const [phoneNumber, setPhoneNumber] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -131,6 +133,7 @@ export function LoginSignup({ onBack, onComplete }: LoginSignupProps) {
           }, 1000);
   
           toast.success("OTP verified successfully");
+          navigate("dashboard/home")
         } else {
           throw new Error(data.message || "Invalid OTP");
         }
@@ -140,7 +143,7 @@ export function LoginSignup({ onBack, onComplete }: LoginSignupProps) {
           error.response?.data?.message || error.message || "Failed to verify OTP. Please try again."
         );
       }
-    };
+  };
   const handleResendOTP = async () => {
   if (countdown > 0) return;
 
