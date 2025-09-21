@@ -10,6 +10,7 @@ import { InputOTP, InputOTPGroup, InputOTPSlot } from './ui/input-otp';
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import axios from "axios";
+import { useAuth } from '../contexts/AuthContext';
 interface LoginSignupProps {
   onBack: () => void;
   onComplete: () => void;
@@ -19,6 +20,7 @@ import { URL } from "../URL";
 type AuthStep = 'input' | 'otp-sent' | 'otp-verified' | 'google-auth';
 
 export function LoginSignup({ onBack, onComplete }: LoginSignupProps) {
+  const { login } = useAuth();
   const [phoneNumber, setPhoneNumber] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -96,46 +98,49 @@ export function LoginSignup({ onBack, onComplete }: LoginSignupProps) {
   };
 
   const handleVerifyOTP = async () => {
-    if (otp.length !== 6) {
-      toast.error("Please enter a 6-digit OTP");
-      return;
-    }
-
-    setIsLoading(true);
-
-    try {
-      const response = await axios.post(`${URL}verify-otp`, {
-        sessionId: sessionId,
-        otp: otp,
-      });
-
-      const data = response.data;
-
-      if (data.success) {
-        setIsLoading(false);
-        setAuthStep("otp-verified");
-
-        // Store the authentication token
-        localStorage.setItem("authToken", data.data.token);
-        localStorage.setItem("userId", data.data.user_id);
-        localStorage.setItem("mobileNumber", data.data.mobile_number);
-
-        setTimeout(() => {
-          onComplete();
-        }, 1000);
-
-        toast.success("OTP verified successfully");
-      } else {
-        throw new Error(data.message || "Invalid OTP");
+      if (otp.length !== 6) {
+        toast.error("Please enter a 6-digit OTP");
+        return;
       }
-    } catch (error: any) {
-      setIsLoading(false);
-      toast.error(
-        error.response?.data?.message || error.message || "Failed to verify OTP. Please try again."
-      );
-    }
-  };
-
+  
+      setIsLoading(true);
+  
+      try {
+        const response = await axios.post(`${URL}verify-otp`, {
+          sessionId: sessionId,
+          otp: otp,
+        });
+  
+        const data = response.data;
+  
+        if (data.success) {
+          setIsLoading(false);
+          setAuthStep("otp-verified");
+  
+          // Use the context login method instead of direct localStorage
+          login(data.data.token, {
+            userId: data.data.user_id,
+            mobileNumber: data.data.mobile_number,
+          });
+  
+          setTimeout(() => {
+            onComplete(data.data.token, {
+              userId: data.data.user_id,
+              mobileNumber: data.data.mobile_number,
+            });
+          }, 1000);
+  
+          toast.success("OTP verified successfully");
+        } else {
+          throw new Error(data.message || "Invalid OTP");
+        }
+      } catch (error: any) {
+        setIsLoading(false);
+        toast.error(
+          error.response?.data?.message || error.message || "Failed to verify OTP. Please try again."
+        );
+      }
+    };
   const handleResendOTP = async () => {
   if (countdown > 0) return;
 
@@ -463,7 +468,7 @@ export function LoginSignup({ onBack, onComplete }: LoginSignupProps) {
                 <Button
                   onClick={handleVerifyOTP}
                   disabled={otp.length !== 6 || isLoading}
-                  className="w-full bg-blue-600 hover:bg-blue-700"
+                  className="w-full bg-blue-600 hover:bg-blue-700 cursor-pointer"
                 >
                   {isLoading ? (
                     <>

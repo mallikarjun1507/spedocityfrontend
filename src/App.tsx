@@ -16,6 +16,8 @@ import { Sidebar } from "./components/Sidebar";
 import { SplashScreen } from "./components/SplashScreen";
 import { useIsMobile } from "./components/ui/use-mobile";
 import { WalletScreen } from "./components/WalletScreen";
+import { AuthProvider, useAuth } from './contexts/AuthContext';
+import { ProtectedRoute } from './components/ProtectedRoute';
 
 type OnboardingStep = "splash" | "intro" | "auth" | "complete";
 type AppTab = "home" | "orders" | "wallet" | "notifications" | "profile";
@@ -27,6 +29,8 @@ type AppState =
   | "order-completed";
 
 function AppContent() {
+  //context
+  const { isAuthenticated, isLoading, login } = useAuth();
   const [currentStep, setCurrentStep] = useState<OnboardingStep>("splash");
   const [activeTab, setActiveTab] = useState<AppTab>("home");
   const [appState, setAppState] = useState<AppState>("onboarding");
@@ -49,7 +53,8 @@ function AppContent() {
     setCurrentStep("intro");
     navigate("/intro");
   };
-  const handleAuthComplete = () => {
+  const handleAuthComplete = (authToken: string, userData: any) => {
+    login(authToken, userData);
     setCurrentStep("complete");
     setAppState("dashboard");
     navigate("/dashboard/home");
@@ -119,70 +124,97 @@ function AppContent() {
           className="size-full"
         >
           <Routes>
-            {/* Onboarding Routes */}
+            {/* Public Routes */}
             <Route path="/" element={<SplashScreen onComplete={handleSplashComplete} />} />
             <Route path="/intro" element={<IntroSlides onComplete={handleIntroComplete} />} />
-            <Route path="/auth" element={<LoginSignup onBack={handleAuthBack} onComplete={handleAuthComplete} />} />
+            <Route 
+              path="/auth" 
+              element={
+                <LoginSignup 
+                  onBack={handleAuthBack} 
+                  onComplete={handleAuthComplete} 
+                />
+              } 
+            />
 
-            {/* Booking + Orders */}
-            <Route path="/booking" element={<BookingFlow onComplete={handleBookingComplete} onCancel={handleBookingCancel} />} />
-            <Route path="/active-order" element={<ActiveOrder orderId={currentOrderId} onBack={handleBackFromActiveOrder} onOrderComplete={handleOrderComplete} />} />
-            <Route path="/order-completed" element={<OrderCompleted orderId={currentOrderId} amount={150} onBack={handleBackFromActiveOrder} onDone={handleOrderCompletedDone} />} />
+            {/* Protected Routes */}
+            <Route 
+              path="/booking" 
+              element={
+                <ProtectedRoute>
+                  <BookingFlow onComplete={handleBookingComplete} onCancel={handleBookingCancel} />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/active-order" 
+              element={
+                <ProtectedRoute>
+                  <ActiveOrder orderId={currentOrderId} onBack={handleBackFromActiveOrder} onOrderComplete={handleOrderComplete} />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/order-completed" 
+              element={
+                <ProtectedRoute>
+                  <OrderCompleted orderId={currentOrderId} amount={150} onBack={handleBackFromActiveOrder} onDone={handleOrderCompletedDone} />
+                </ProtectedRoute>
+              } 
+            />
 
-            {/* Dashboard */}
+            {/* Protected Dashboard Routes */}
             <Route
               path="/dashboard/*"
               element={
-                isMobile ? (
-                  <div className="size-full relative flex flex-col overflow-hidden">
-                    <div className="flex-1 overflow-hidden">
-                      <Routes>
-                        <Route path="home" element={<Dashboard onStartBooking={handleStartBooking} onTrackOrder={handleTrackOrder} />} />
-                        <Route path="orders" element={<OrdersScreen onTrackOrder={handleTrackOrder} />} />
-                        <Route path="wallet" element={<WalletScreen />} />
-                        <Route path="notifications" element={<NotificationScreen />} />
-                        <Route path="profile" element={<ProfileScreen />} />
-                        {/* fallback redirect ensures back button never shows blank */}
-                        <Route path="*" element={<Navigate to="home" replace />} />
-                      </Routes>
-                    </div>
-                    <BottomNavigation activeTab={activeTab} onTabChange={handleTabChange} />
-                    {sidebarExpanded && (
-                      <div className="fixed inset-0 bg-black/20 z-30" onClick={() => setSidebarExpanded(false)} />
-                    )}
-                  </div>
-                ) : (
-                  <div className="size-full flex overflow-hidden">
-                    {/* Sidebar */}
-                    <div className={`transition-all duration-300 h-full bg-white shadow-md ${sidebarExpanded ? "w-64" : "w-20"}`}>
-                      <Sidebar
-                        activeTab={activeTab}
-                        onTabChange={handleTabChange}
-                        expanded={sidebarExpanded}
-                        onToggle={handleSidebarToggle}
-                      />
-                    </div>
-                    {/* Main Content */}
-                    <div className="flex-1 overflow-y-auto transition-all duration-300" onClick={handleContentClick}>
-                      <div className="min-h-full">
+                <ProtectedRoute>
+                  {isMobile ? (
+                    <div className="size-full relative flex flex-col overflow-hidden">
+                      <div className="flex-1 overflow-hidden">
                         <Routes>
                           <Route path="home" element={<Dashboard onStartBooking={handleStartBooking} onTrackOrder={handleTrackOrder} />} />
                           <Route path="orders" element={<OrdersScreen onTrackOrder={handleTrackOrder} />} />
                           <Route path="wallet" element={<WalletScreen />} />
                           <Route path="notifications" element={<NotificationScreen />} />
                           <Route path="profile" element={<ProfileScreen />} />
-                          {/* fallback redirect ensures back button never shows blank */}
                           <Route path="*" element={<Navigate to="home" replace />} />
                         </Routes>
                       </div>
+                      <BottomNavigation activeTab={activeTab} onTabChange={handleTabChange} />
+                      {sidebarExpanded && (
+                        <div className="fixed inset-0 bg-black/20 z-30" onClick={() => setSidebarExpanded(false)} />
+                      )}
                     </div>
-                  </div>
-                )
+                  ) : (
+                    <div className="size-full flex overflow-hidden">
+                      <div className={`transition-all duration-300 h-full bg-white shadow-md ${sidebarExpanded ? "w-64" : "w-20"}`}>
+                        <Sidebar
+                          activeTab={activeTab}
+                          onTabChange={handleTabChange}
+                          expanded={sidebarExpanded}
+                          onToggle={handleSidebarToggle}
+                        />
+                      </div>
+                      <div className="flex-1 overflow-y-auto transition-all duration-300" onClick={handleContentClick}>
+                        <div className="min-h-full">
+                          <Routes>
+                            <Route path="home" element={<Dashboard onStartBooking={handleStartBooking} onTrackOrder={handleTrackOrder} />} />
+                            <Route path="orders" element={<OrdersScreen onTrackOrder={handleTrackOrder} />} />
+                            <Route path="wallet" element={<WalletScreen />} />
+                            <Route path="notifications" element={<NotificationScreen />} />
+                            <Route path="profile" element={<ProfileScreen />} />
+                            <Route path="*" element={<Navigate to="home" replace />} />
+                          </Routes>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </ProtectedRoute>
               }
             />
 
-            {/* Global fallback ensures root/back button works */}
-            <Route path="*" element={<Navigate to="/dashboard/home" replace />} />
+            {/* Redirect all unknown routes */}
+            <Route path="*" element={<Navigate to={isAuthenticated ? "/dashboard/home" : "/"} replace />} />
           </Routes>
         </motion.div>
       </AnimatePresence>
@@ -192,8 +224,10 @@ function AppContent() {
 
 export default function App() {
   return (
-    <Router>
-      <AppContent />
-    </Router>
+    <AuthProvider>
+      <Router>
+        <AppContent />
+      </Router>
+     </AuthProvider>
   );
 }

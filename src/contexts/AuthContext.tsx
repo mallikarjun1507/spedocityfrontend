@@ -40,7 +40,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     setIsLoading(false);
   }, []);
 
-  const login = (newToken: string, userData: User) => {
+    const login = (newToken: string, userData: User) => {
     localStorage.setItem('authToken', newToken);
     localStorage.setItem('userId', userData.userId);
     localStorage.setItem('mobileNumber', userData.mobileNumber);
