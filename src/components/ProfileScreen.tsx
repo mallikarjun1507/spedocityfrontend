@@ -1,5 +1,6 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { motion } from 'motion/react';
+import {URL} from "../URL";
 import { 
   User, 
   Phone, 
@@ -32,6 +33,9 @@ import { Textarea } from './ui/textarea';
 import { useAuth } from '../contexts/AuthContext';
 import axios from 'axios';
 import { toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+
+// <ToastContainer />
 const menuItems = [
   {
     id: 'profile',
@@ -326,11 +330,10 @@ function EditProfileScreen({ onBack, userData }: { onBack: () => void; userData:
   });
 
   const handleSave = async () => {
-    console.log('Saving profile data:', formData);
     try {
       const res = await axios.post(
-        `${URL}updateProfile`,
-        formData, // body
+        `${URL}update-profile`,
+        { ...formData, userId: userData?.userId }, // body
         {
           headers: {
             'Authorization': userData?.authToken,
@@ -338,8 +341,7 @@ function EditProfileScreen({ onBack, userData }: { onBack: () => void; userData:
           },
         }
       );
-
-      if (res.status === 200) {
+      if (res.status === 200 && res.data) {
         toast.success('Profile updated successfully');
       } else {
         toast.error('Failed to update profile');
@@ -350,7 +352,30 @@ function EditProfileScreen({ onBack, userData }: { onBack: () => void; userData:
     }
     setIsEditing(false);
   };
-
+  useEffect(()=>{
+    const userInfo = async () =>{
+      const res = await axios.get(`${URL}get-user-info`,{
+        headers:{
+          'Authorization': userData?.authToken
+        },
+        params: {
+          userId : userData?.userId
+        }
+      })
+      if (res.status === 200){
+        const isoDate = res.data.data.date_of_birth;
+        const formattedDate = isoDate ? isoDate.split('T')[0] : '';
+        setFormData(prev => ({
+          ...prev,
+          name: res.data.data.full_name,
+          email: res.data.data.email,
+          dateOfBirth: formattedDate,
+          gender: res.data.data.gender
+        }))
+      }
+    };
+    userInfo();
+  },[])
   const handleCancel = () => {
     setIsEditing(false);
   };
@@ -403,7 +428,7 @@ function EditProfileScreen({ onBack, userData }: { onBack: () => void; userData:
                   <Button
                     size="sm"
                     className="absolute -bottom-2 -right-2 w-8 h-8 rounded-full p-0 bg-blue-600 hover:bg-blue-700"
-                    onClick={() => console.log('Change profile photo')}
+                    // onClick={() => console.log('Change profile photo')}
                   >
                     <Camera className="w-4 h-4" />
                   </Button>
