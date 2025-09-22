@@ -207,8 +207,11 @@ export function ProfileScreen() {
               <div className="flex items-center gap-4 mb-4">
                 <Avatar className="w-16 h-16">
                   <AvatarFallback className="bg-blue-600 text-white text-xl">
-                    {userData?.name.split(' ').map(n => n[0]).join('')}
+                    {userData?.name
+                      ? userData.name.split(' ').map(n => n[0]).join('')
+                      : 'U'}   {/* fallback initial if name is undefined */}
                   </AvatarFallback>
+                    
                 </Avatar>
                 <div className="flex-1">
                   <h2 className="text-lg mb-1">{userData?.name}</h2>
@@ -367,6 +370,13 @@ function EditProfileScreen({ onBack, userData }: { onBack: () => void; userData:
       if (res.status === 200){
         const isoDate = res.data.data.date_of_birth;
         const formattedDate = isoDate ? isoDate.split('T')[0] : '';
+        setFormData(prev => ({
+          ...prev,
+          name: res.data.data.full_name,
+          email: res.data.data.email,
+          dateOfBirth: formattedDate,
+          gender: res.data.data.gender
+        }))
         const userInfo = {
           'name': res.data.data.full_name,
           'email': res.data.data.email,
@@ -398,13 +408,7 @@ function EditProfileScreen({ onBack, userData }: { onBack: () => void; userData:
         };
 
         updateUserInfo();
-        setFormData(prev => ({
-          ...prev,
-          name: res.data.data.full_name,
-          email: res.data.data.email,
-          dateOfBirth: formattedDate,
-          gender: res.data.data.gender
-        }))
+        
       }
     };
     userInfo();
@@ -418,24 +422,24 @@ function EditProfileScreen({ onBack, userData }: { onBack: () => void; userData:
       <div className="bg-white px-6 py-4 shadow-sm">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <Button variant="ghost" size="sm" onClick={onBack}>
+            <Button variant="ghost" size="sm" onClick={onBack} className='cursor-pointer'>
               <ChevronRight className="w-4 h-4 mr-2 rotate-180" />
               Back
             </Button>
             <h1 className="text-lg">Edit Profile</h1>
           </div>
           {!isEditing ? (
-            <Button size="sm" onClick={() => setIsEditing(true)}>
+            <Button size="sm" onClick={() => setIsEditing(true)} className='cursor-pointer'>
               <Edit3 className="w-4 h-4 mr-2" />
               Edit
             </Button>
           ) : (
             <div className="flex gap-2">
-              <Button variant="outline" size="sm" onClick={handleCancel}>
+              <Button variant="outline" size="sm" onClick={handleCancel} className='cursor-pointer'>
                 <X className="w-4 h-4 mr-1" />
                 Cancel
               </Button>
-              <Button size="sm" onClick={handleSave}>
+              <Button size="sm" onClick={handleSave} className='cursor-pointer'>
                 <Check className="w-4 h-4 mr-1" />
                 Save
               </Button>
@@ -460,7 +464,7 @@ function EditProfileScreen({ onBack, userData }: { onBack: () => void; userData:
                 {isEditing && (
                   <Button
                     size="sm"
-                    className="absolute -bottom-2 -right-2 w-8 h-8 rounded-full p-0 bg-blue-600 hover:bg-blue-700"
+                    className="cursor-pointer absolute -bottom-2 -right-2 w-8 h-8 rounded-full p-0 bg-blue-600 hover:bg-blue-700"
                     // onClick={() => console.log('Change profile photo')}
                   >
                     <Camera className="w-4 h-4" />
@@ -595,7 +599,7 @@ function WalletPaymentsScreen({ onBack, walletBalance }: { onBack: () => void; w
     <div className="flex flex-col h-full bg-gray-50">
       <div className="bg-white px-6 py-4 shadow-sm">
         <div className="flex items-center gap-4">
-          <Button variant="ghost" size="sm" onClick={onBack}>
+          <Button variant="ghost" size="sm" onClick={onBack} className='cursor-pointer'>
             <ChevronRight className="w-4 h-4 mr-2 rotate-180" />
             Back
           </Button>
@@ -615,7 +619,7 @@ function WalletPaymentsScreen({ onBack, walletBalance }: { onBack: () => void; w
               <span className="text-3xl font-bold">₹{walletBalance}</span>
               <span className="text-sm opacity-75 ml-2">Available Balance</span>
             </div>
-            <Button variant="secondary" size="sm" className="bg-white/20 text-white border-0 hover:bg-white/30">
+            <Button variant="secondary" size="sm" className="cursor-pointer bg-white/20 text-white border-0 hover:bg-white/30">
               <Plus className="w-4 h-4 mr-2" />
               Add Money
             </Button>
@@ -657,7 +661,7 @@ function WalletPaymentsScreen({ onBack, walletBalance }: { onBack: () => void; w
           <CardContent className="p-6">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg font-medium">Payment Methods</h3>
-              <Button variant="outline" size="sm">
+              <Button variant="outline" size="sm" className='cursor-pointer'>
                 <Plus className="w-4 h-4 mr-2" />
                 Add New
               </Button>
@@ -744,7 +748,7 @@ function SavedAddressesScreen({ onBack }: { onBack: () => void }) {
     <div className="flex flex-col h-full bg-gray-50">
       <div className="bg-white px-6 py-4 shadow-sm">
         <div className="flex items-center gap-4">
-          <Button variant="ghost" size="sm" onClick={onBack}>
+          <Button variant="ghost" size="sm" onClick={onBack} className='cursor-pointer'>
             <ChevronRight className="w-4 h-4 mr-2 rotate-180" />
             Back
           </Button>
@@ -773,7 +777,7 @@ function SavedAddressesScreen({ onBack }: { onBack: () => void }) {
                       </div>
                       <p className="text-sm text-gray-600">{address.address}</p>
                     </div>
-                    <Button variant="ghost" size="sm">
+                    <Button variant="ghost" size="sm" className='cursor-pointer'>
                       <Settings className="w-4 h-4" />
                     </Button>
                   </div>
@@ -783,7 +787,7 @@ function SavedAddressesScreen({ onBack }: { onBack: () => void }) {
           ))}
         </div>
 
-        <Button className="w-full mt-6 bg-blue-600 hover:bg-blue-700">
+        <Button className="w-full mt-6 bg-blue-600 hover:bg-blue-700 cursor-pointer">
           <MapPin className="w-4 h-4 mr-2" />
           Add New Address
         </Button>
@@ -805,7 +809,7 @@ function ReferralProgramScreen({ onBack }: { onBack: () => void }) {
     <div className="flex flex-col h-full bg-gray-50">
       <div className="bg-white px-6 py-4 shadow-sm">
         <div className="flex items-center gap-4">
-          <Button variant="ghost" size="sm" onClick={onBack}>
+          <Button variant="ghost" size="sm" onClick={onBack} className='cursor-pointer'>
             <ChevronRight className="w-4 h-4 mr-2 rotate-180" />
             Back
           </Button>
@@ -829,7 +833,7 @@ function ReferralProgramScreen({ onBack }: { onBack: () => void }) {
                 <p className="text-2xl font-mono font-bold tracking-wider">{referralCode}</p>
               </div>
 
-              <Button className="w-full bg-purple-600 hover:bg-purple-700">
+              <Button className="w-full bg-purple-600 hover:bg-purple-700 cursor-pointer">
                 <Users className="w-4 h-4 mr-2" />
                 Share Code
               </Button>
@@ -926,7 +930,7 @@ function SupportChatScreen({ onBack }: { onBack: () => void }) {
     <div className="flex flex-col h-full bg-gray-50">
       <div className="bg-white px-6 py-4 shadow-sm">
         <div className="flex items-center gap-4">
-          <Button variant="ghost" size="sm" onClick={onBack}>
+          <Button variant="ghost" size="sm" onClick={onBack} className='cursor-pointer'>
             <ChevronRight className="w-4 h-4 mr-2 rotate-180" />
             Back
           </Button>
@@ -969,7 +973,7 @@ function SupportChatScreen({ onBack }: { onBack: () => void }) {
                   key={index}
                   variant="outline"
                   size="sm"
-                  className="text-xs h-auto py-2"
+                  className="text-xs h-auto py-2 cursor-pointer"
                   onClick={() => setInputText(question)}
                 >
                   {question}
@@ -991,7 +995,7 @@ function SupportChatScreen({ onBack }: { onBack: () => void }) {
             placeholder="Type your message..."
             className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
           />
-          <Button onClick={handleSendMessage} disabled={!inputText.trim()}>
+          <Button onClick={handleSendMessage} disabled={!inputText.trim()} className='cursor-pointer'>
             Send
           </Button>
         </div>
