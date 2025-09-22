@@ -12,7 +12,7 @@ import {
   X
 } from 'lucide-react';
 import { motion } from 'motion/react';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { LocationPicker } from './LocationPicker';
 import { TruckAnimation } from './TruckAnimation';
 import { Badge } from './ui/badge';
@@ -71,7 +71,6 @@ const offers = [
 ];
 
 interface DashboardProps {
-  userName?: string;
   onStartBooking: (data?: {
     pickup?: string;
     dropoff?: string;
@@ -81,7 +80,11 @@ interface DashboardProps {
   currentOrderId?: string;
 }
 
-export function Dashboard({ userName = "John", onStartBooking, onTrackOrder, currentOrderId }: DashboardProps) {
+export function Dashboard({ onStartBooking, onTrackOrder, currentOrderId }: DashboardProps) {
+  const userData = useMemo(()=>{
+    const user = localStorage.getItem('user');
+    return user ? JSON.parse(user) : {};
+  },[])
   const [pickup, setPickup] = useState('');
   const [dropoff, setDropoff] = useState('');
   const [viaLocations, setViaLocations] = useState<Array<{ id: string, title: string, address: string }>>([]);
@@ -150,11 +153,11 @@ export function Dashboard({ userName = "John", onStartBooking, onTrackOrder, cur
         >
           <div className="flex items-center justify-between mb-4">
             <div>
-              <h1 className="text-xl">Hello, {userName}! 👋</h1>
+              <h1 className="text-xl">Hello, {userData?.name}! 👋</h1>
               <p className="text-gray-600 text-sm">Where do you want to deliver today?</p>
             </div>
             <div className="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center">
-              <span className="text-white text-sm">{userName.charAt(0)}</span>
+              <span className="text-white text-sm">{userData?.name.charAt(0)}</span>
             </div>
           </div>
 
