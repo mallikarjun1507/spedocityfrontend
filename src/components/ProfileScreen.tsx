@@ -101,23 +101,25 @@ const menuItems = [
 export function ProfileScreen() {
   const [activeScreen, setActiveScreen] = useState<string | null>(null);
   const {logout} = useAuth()
-  const userName = "John Doe";
-  const userEmail = "john.doe@example.com";
-  const userPhone = "+91 98765 43210";
-  const userRating = 4.8;
-  const totalDeliveries = 23;
-  const walletBalance = 1250;
   const userData = useMemo(()=>{
     const user = localStorage.getItem('user');
     return user ? JSON.parse(user) : {};
   },[])
+  const userRating = 4.8;
+  const totalDeliveries = 23;
+  const walletBalance = 1250;
+  
   const handleLogOut = async() =>{
     try {
-      const res = await axios.post(`${URL}logout`,{
-        headers :{
-          'Authorization': userData?.authToken
+      const res = await axios.post(
+        `${URL}logout`,
+        {}, // empty body
+        {
+          headers: {
+            'Authorization': userData?.authToken
+          }
         }
-      })
+      );
       if (res.status === 200){
         toast.success("Logout is success")
       }
@@ -205,15 +207,15 @@ export function ProfileScreen() {
               <div className="flex items-center gap-4 mb-4">
                 <Avatar className="w-16 h-16">
                   <AvatarFallback className="bg-blue-600 text-white text-xl">
-                    {userName.split(' ').map(n => n[0]).join('')}
+                    {userData?.name.split(' ').map(n => n[0]).join('')}
                   </AvatarFallback>
                 </Avatar>
                 <div className="flex-1">
-                  <h2 className="text-lg mb-1">{userName}</h2>
+                  <h2 className="text-lg mb-1">{userData?.name}</h2>
                   <div className="flex items-center gap-2 mb-2">
                     <Star className="w-4 h-4 text-yellow-500 fill-current" />
                     <span className="text-sm">{userRating}</span>
-                    <span className="text-xs text-gray-500">({totalDeliveries} deliveries)</span>
+                    <span className="text-xs text-gray-500">({totalDeliveries} Orders)</span>
                   </div>
                   <Badge variant="secondary" className="bg-green-100 text-green-700 text-xs">
                     Verified User
@@ -235,11 +237,11 @@ export function ProfileScreen() {
               <div className="space-y-3 pt-4 border-t">
                 <div className="flex items-center gap-3">
                   <Mail className="w-4 h-4 text-gray-400" />
-                  <span className="text-sm text-gray-600">{userEmail}</span>
+                  <span className="text-sm text-gray-600">{userData?.email}</span>
                 </div>
                 <div className="flex items-center gap-3">
                   <Phone className="w-4 h-4 text-gray-400" />
-                  <span className="text-sm text-gray-600">{userPhone}</span>
+                  <span className="text-sm text-gray-600">{userData?.mobileNumber}</span>
                 </div>
               </div>
             </CardContent>
@@ -365,6 +367,37 @@ function EditProfileScreen({ onBack, userData }: { onBack: () => void; userData:
       if (res.status === 200){
         const isoDate = res.data.data.date_of_birth;
         const formattedDate = isoDate ? isoDate.split('T')[0] : '';
+        const userInfo = {
+          'name': res.data.data.full_name,
+          'email': res.data.data.email,
+          'dateOfBirth': formattedDate,
+        }
+        const updateUserInfo = () => {
+          try {
+            // 1. Get the existing user data from localStorage
+            const existingUserStr = localStorage.getItem('user');
+            if (existingUserStr) {
+              // 2. Parse the existing user data
+              const existingUser = JSON.parse(existingUserStr);
+
+              // 3. Update only the specific fields you want
+              const updatedUser = {
+                ...existingUser, // Keep all existing properties
+                ...userInfo,     // Override with new userInfo
+              };
+
+              localStorage.setItem('user', JSON.stringify(updatedUser));
+
+              console.log('User info updated successfully');
+            } else {
+              console.log('No user data found in localStorage');
+            }
+          } catch (error) {
+            console.error('Error updating user info:', error);
+          }
+        };
+
+        updateUserInfo();
         setFormData(prev => ({
           ...prev,
           name: res.data.data.full_name,
