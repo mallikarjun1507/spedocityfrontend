@@ -535,7 +535,7 @@ function WalletPaymentsScreen({ onBack, walletBalance }: { onBack: () => void; w
           </CardContent>
         </Card>
 
-        {/* Quick Actions */}
+        {/* Quick Actions Actions*/}
         <div className="grid grid-cols-3 gap-4 mb-6">
           <Card className="cursor-pointer hover:shadow-md transition-shadow">
             <CardContent className="p-4 text-center">
