@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { motion } from 'motion/react';
 import { 
   User, 
@@ -30,6 +30,8 @@ import { Input } from './ui/input';
 import { Label } from './ui/label';
 import { Textarea } from './ui/textarea';
 import { useAuth } from '../contexts/AuthContext';
+import axios from 'axios';
+import { toast } from 'react-toastify';
 const menuItems = [
   {
     id: 'profile',
@@ -101,7 +103,23 @@ export function ProfileScreen() {
   const userRating = 4.8;
   const totalDeliveries = 23;
   const walletBalance = 1250;
-  const handleLogOut = () =>{
+  const userData = useMemo(()=>{
+    const user = localStorage.getItem('user');
+    return user ? JSON.parse(user) : {};
+  },[])
+  const handleLogOut = async() =>{
+    try {
+      const res = await axios.post(`${URL}logout`,{
+        headers :{
+          'Authorization': userData?.authToken
+        }
+      })
+      if (res.status === 200){
+        toast.success("Logout is success")
+      }
+    } catch (error) {
+      console.error(error)
+    }
     logout();
   }
   const handleMenuClick = (itemId: string) => {
@@ -113,7 +131,7 @@ export function ProfileScreen() {
   };
 
   if (activeScreen === 'profile') {
-    return <EditProfileScreen onBack={() => setActiveScreen(null)} userData={{ userName, userEmail, userPhone }} />;
+    return <EditProfileScreen onBack={() => setActiveScreen(null)} userData={userData} />;
   }
 
   if (activeScreen === 'wallet') {
@@ -297,32 +315,43 @@ export function ProfileScreen() {
 }
 
 // Edit Profile Screen
-function EditProfileScreen({ onBack, userData }: { onBack: () => void; userData: { userName: string; userEmail: string; userPhone: string } }) {
+function EditProfileScreen({ onBack, userData }: { onBack: () => void; userData: { authToken: string; mobileNumber: number; userId: string } }) {
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState({
-    name: userData.userName,
-    email: userData.userEmail,
-    phone: userData.userPhone,
-    dateOfBirth: '1990-01-15',
-    gender: 'Male',
+    name: "",
+    email: "",
+    dateOfBirth: '',
+    gender: '',
     emergencyContact: '+91 98765 43211'
   });
 
-  const handleSave = () => {
+  const handleSave = async () => {
     console.log('Saving profile data:', formData);
+    try {
+      const res = await axios.post(
+        `${URL}updateProfile`,
+        formData, // body
+        {
+          headers: {
+            'Authorization': userData?.authToken,
+            'Content-Type': 'application/json', // or multipart/form-data depending on backend
+          },
+        }
+      );
+
+      if (res.status === 200) {
+        toast.success('Profile updated successfully');
+      } else {
+        toast.error('Failed to update profile');
+      }
+    } catch (error) {
+      console.error(error);
+      toast.error('Something went wrong');
+    }
     setIsEditing(false);
-    // Here you would typically save to backend
   };
 
   const handleCancel = () => {
-    setFormData({
-      name: userData.userName,
-      email: userData.userEmail,
-      phone: userData.userPhone,
-      dateOfBirth: '1990-01-15',
-      gender: 'Male',
-      emergencyContact: '+91 98765 43211'
-    });
     setIsEditing(false);
   };
 
@@ -418,9 +447,9 @@ function EditProfileScreen({ onBack, userData }: { onBack: () => void; userData:
                 <Label htmlFor="phone">Phone Number</Label>
                 <Input
                   id="phone"
-                  value={formData.phone}
-                  onChange={(e) => setFormData(prev => ({ ...prev, phone: e.target.value }))}
-                  disabled={!isEditing}
+                  value={userData?.mobileNumber}
+                  // onChange={(e) => setFormData(prev => ({ ...prev, phone: e.target.value }))}
+                  disabled
                   className={!isEditing ? 'bg-gray-50' : ''}
                 />
               </div>
