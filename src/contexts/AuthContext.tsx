@@ -25,34 +25,39 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Check for existing auth data on app load
-    const storedToken = localStorage.getItem('authToken');
-    const storedUserId = localStorage.getItem('userId');
-    const storedMobileNumber = localStorage.getItem('mobileNumber');
-
-    if (storedToken && storedUserId && storedMobileNumber) {
-      setToken(storedToken);
-      setUser({
-        userId: storedUserId,
-        mobileNumber: storedMobileNumber,
-      });
+  // Check for existing auth data on app load
+    const storedUserStr = localStorage.getItem('user');
+    if (storedUserStr) {
+      try {
+        const storedUser = JSON.parse(storedUserStr);
+        if (storedUser.authToken && storedUser.userId && storedUser.mobileNumber) {
+          setToken(storedUser.authToken);
+          setUser({
+            userId: storedUser.userId,
+            mobileNumber: storedUser.mobileNumber,
+          });
+        }
+      } catch (err) {
+        console.error('Error parsing stored user data', err);
+      }
     }
     setIsLoading(false);
   }, []);
 
-    const login = (newToken: string, userData: User) => {
-    localStorage.setItem('authToken', newToken);
-    localStorage.setItem('userId', userData.userId);
-    localStorage.setItem('mobileNumber', userData.mobileNumber);
+  const login = (newToken: string, userData: User) => {
+      const user = {
+        "authToken":newToken,
+        "userId": userData.userId,
+        "mobileNumber": userData.mobileNumber
+      }
+      localStorage.setItem('user',JSON.stringify(user))
     
     setToken(newToken);
     setUser(userData);
   };
 
   const logout = () => {
-    localStorage.removeItem('authToken');
-    localStorage.removeItem('userId');
-    localStorage.removeItem('mobileNumber');
+    localStorage.removeItem('user');
     
     setToken(null);
     setUser(null);
