@@ -13,13 +13,13 @@ import {
 } from 'lucide-react';
 import { motion } from 'motion/react';
 import { useMemo, useState } from 'react';
+import { useNavigate } from "react-router-dom";
 import { LocationPicker } from './LocationPicker';
 import { TruckAnimation } from './TruckAnimation';
 import { Badge } from './ui/badge';
 import { Button } from './ui/button';
 import { Card, CardContent } from './ui/card';
 import { Input } from './ui/input';
-
 const serviceCards = [
   {
     id: 'packers',
@@ -81,10 +81,10 @@ interface DashboardProps {
 }
 
 export function Dashboard({ onStartBooking, onTrackOrder, currentOrderId }: DashboardProps) {
-  const userData = useMemo(()=>{
+  const userData = useMemo(() => {
     const user = localStorage.getItem('user');
     return user ? JSON.parse(user) : {};
-  },[])
+  }, [])
   const [pickup, setPickup] = useState('');
   const [dropoff, setDropoff] = useState('');
   const [viaLocations, setViaLocations] = useState<Array<{ id: string, title: string, address: string }>>([]);
@@ -92,6 +92,7 @@ export function Dashboard({ onStartBooking, onTrackOrder, currentOrderId }: Dash
   const [locationPickerType, setLocationPickerType] = useState<'pickup' | 'dropoff' | 'via'>('pickup');
   const [hoveredService, setHoveredService] = useState<string | null>(null);
   const [orderOTP, setOrderOTP] = useState<string>('');
+  const navigate = useNavigate();
 
   // Generate pickup OTP for active orders (stable across renders)
   const generatePickupOTP = () => {
@@ -211,7 +212,7 @@ export function Dashboard({ onStartBooking, onTrackOrder, currentOrderId }: Dash
             <Button
               variant="outline"
               size="sm"
-              className="w-full border-dashed border-blue-300 text-blue-600 hover:bg-blue-50"
+              className="w-full border-dashed border-blue-300 text-blue-600 hover:bg-blue-50 cursor-pointer"
               onClick={() => handleLocationPicker('via')}
             >
               <Plus className="w-4 h-4 mr-2" />
@@ -246,7 +247,7 @@ export function Dashboard({ onStartBooking, onTrackOrder, currentOrderId }: Dash
                 transition={{ duration: 0.3 }}
               >
                 <Button
-                  className="w-full bg-blue-600 hover:bg-blue-700 mt-4 group relative overflow-hidden"
+                  className="w-full bg-blue-600 hover:bg-blue-700 mt-4 group relative overflow-hidden cursor-pointer"
                   onClick={(e) => {
                     e.preventDefault();
                     e.stopPropagation();
@@ -255,6 +256,7 @@ export function Dashboard({ onStartBooking, onTrackOrder, currentOrderId }: Dash
                       dropoff,
                       viaLocations
                     });
+                    navigate("/services");
                   }}
                 >
                   <motion.div
@@ -489,8 +491,8 @@ export function Dashboard({ onStartBooking, onTrackOrder, currentOrderId }: Dash
                 <Card
                   key={index}
                   className={`border-0 shadow-sm cursor-pointer ${offer.type === 'promo'
-                      ? 'bg-gradient-to-r from-green-50 to-emerald-50 border-l-4 border-l-green-500'
-                      : 'bg-gradient-to-r from-purple-50 to-violet-50 border-l-4 border-l-purple-500'
+                    ? 'bg-gradient-to-r from-green-50 to-emerald-50 border-l-4 border-l-green-500'
+                    : 'bg-gradient-to-r from-purple-50 to-violet-50 border-l-4 border-l-purple-500'
                     }`}
                 >
                   <CardContent className="p-4 flex items-center justify-between">
@@ -567,7 +569,7 @@ export function Dashboard({ onStartBooking, onTrackOrder, currentOrderId }: Dash
                 <p className="text-xs text-gray-600 mb-4">Start your first delivery to see activity here</p>
                 <Button
                   size="sm"
-                  className="bg-blue-600 hover:bg-blue-700"
+                  className="bg-blue-600 hover:bg-blue-700 cursor-pointer"
                   onClick={() => onStartBooking()}
                 >
                   Book Now

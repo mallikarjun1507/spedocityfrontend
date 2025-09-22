@@ -2,6 +2,7 @@
 import { AnimatePresence, motion } from "motion/react";
 import { useState } from "react";
 import { Navigate, Route, BrowserRouter as Router, Routes, useNavigate } from "react-router-dom";
+import { ToastContainer } from 'react-toastify';
 import { ActiveOrder } from "./components/ActiveOrder";
 import { BookingFlow } from "./components/BookingFlow";
 import { BottomNavigation } from "./components/BottomNavigation";
@@ -12,13 +13,12 @@ import { NotificationScreen } from "./components/NotificationScreen";
 import { OrderCompleted } from "./components/OrderCompleted";
 import { OrdersScreen } from "./components/OrdersScreen";
 import { ProfileScreen } from "./components/ProfileScreen";
+import { ProtectedRoute } from './components/ProtectedRoute';
 import { Sidebar } from "./components/Sidebar";
 import { SplashScreen } from "./components/SplashScreen";
 import { useIsMobile } from "./components/ui/use-mobile";
 import { WalletScreen } from "./components/WalletScreen";
 import { AuthProvider, useAuth } from './contexts/AuthContext';
-import { ProtectedRoute } from './components/ProtectedRoute';
-import { ToastContainer } from 'react-toastify';
 
 type OnboardingStep = "splash" | "intro" | "auth" | "complete";
 type AppTab = "home" | "orders" | "wallet" | "notifications" | "profile";
@@ -79,10 +79,8 @@ function AppContent() {
   };
 
   // Booking + Orders
-  const handleStartBooking = () => {
-    setAppState("booking");
-    navigate("/booking");
-  };
+  const handleStartBooking = () => { setAppState("booking"); navigate("/booking"); };
+
   const handleBookingComplete = () => {
     const orderId = "SPD" + Math.random().toString(36).substr(2, 6).toUpperCase();
     setCurrentOrderId(orderId);
@@ -115,7 +113,7 @@ function AppContent() {
 
   return (
     <div className="size-full overflow-hidden">
-       <ToastContainer
+      <ToastContainer
         position="top-right"
         autoClose={3000}
         hideProgressBar={false}
@@ -139,41 +137,41 @@ function AppContent() {
             {/* Public Routes */}
             <Route path="/" element={<SplashScreen onComplete={handleSplashComplete} />} />
             <Route path="/intro" element={<IntroSlides onComplete={handleIntroComplete} />} />
-            
-            <Route 
-              path="/auth" 
+
+            <Route
+              path="/auth"
               element={
-                <LoginSignup 
-                  onBack={handleAuthBack} 
-                  onComplete={handleAuthComplete} 
+                <LoginSignup
+                  onBack={handleAuthBack}
+                  onComplete={handleAuthComplete}
                 />
-              } 
+              }
             />
 
             {/* Protected Routes */}
-            <Route 
-              path="/booking" 
+            <Route
+              path="/booking"
               element={
                 <ProtectedRoute>
                   <BookingFlow onComplete={handleBookingComplete} onCancel={handleBookingCancel} />
                 </ProtectedRoute>
-              } 
+              }
             />
-            <Route 
-              path="/active-order" 
+            <Route
+              path="/active-order"
               element={
                 <ProtectedRoute>
                   <ActiveOrder orderId={currentOrderId} onBack={handleBackFromActiveOrder} onOrderComplete={handleOrderComplete} />
                 </ProtectedRoute>
-              } 
+              }
             />
-            <Route 
-              path="/order-completed" 
+            <Route
+              path="/order-completed"
               element={
                 <ProtectedRoute>
                   <OrderCompleted orderId={currentOrderId} amount={150} onBack={handleBackFromActiveOrder} onDone={handleOrderCompletedDone} />
                 </ProtectedRoute>
-              } 
+              }
             />
 
             {/* Protected Dashboard Routes */}
@@ -191,6 +189,8 @@ function AppContent() {
                           <Route path="notifications" element={<NotificationScreen />} />
                           <Route path="profile" element={<ProfileScreen />} />
                           <Route path="*" element={<Navigate to="home" replace />} />
+
+
                         </Routes>
                       </div>
                       <BottomNavigation activeTab={activeTab} onTabChange={handleTabChange} />
@@ -217,6 +217,7 @@ function AppContent() {
                             <Route path="notifications" element={<NotificationScreen />} />
                             <Route path="profile" element={<ProfileScreen />} />
                             <Route path="*" element={<Navigate to="home" replace />} />
+
                           </Routes>
                         </div>
                       </div>
@@ -241,6 +242,6 @@ export default function App() {
       <Router>
         <AppContent />
       </Router>
-     </AuthProvider>
+    </AuthProvider>
   );
 }
