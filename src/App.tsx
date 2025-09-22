@@ -18,6 +18,7 @@ import { useIsMobile } from "./components/ui/use-mobile";
 import { WalletScreen } from "./components/WalletScreen";
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { ProtectedRoute } from './components/ProtectedRoute';
+import { ToastContainer } from 'react-toastify';
 
 type OnboardingStep = "splash" | "intro" | "auth" | "complete";
 type AppTab = "home" | "orders" | "wallet" | "notifications" | "profile";
@@ -114,6 +115,17 @@ function AppContent() {
 
   return (
     <div className="size-full overflow-hidden">
+       <ToastContainer
+        position="top-right"
+        autoClose={3000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+      />
       <AnimatePresence mode="wait">
         <motion.div
           key={appState === "onboarding" ? currentStep : appState}
@@ -127,6 +139,7 @@ function AppContent() {
             {/* Public Routes */}
             <Route path="/" element={<SplashScreen onComplete={handleSplashComplete} />} />
             <Route path="/intro" element={<IntroSlides onComplete={handleIntroComplete} />} />
+            
             <Route 
               path="/auth" 
               element={
