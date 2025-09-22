@@ -1,25 +1,22 @@
-import { useState } from 'react';
-import { motion } from 'motion/react';
-import { 
-  Bell, 
-  BellRing, 
-  Check, 
-  CheckCircle2, 
-  Circle,
-  Package,
-  Truck,
-  Gift,
-  CreditCard,
+import {
   AlertCircle,
+  Bell,
+  Check,
+  CheckCircle2,
+  ChevronDown,
+  CreditCard,
+  Gift,
   Info,
+  Package,
   Settings,
   Trash2,
-  Filter,
-  ChevronDown
+  Truck
 } from 'lucide-react';
+import { motion } from 'motion/react';
+import { useState } from 'react';
+import { Badge } from './ui/badge';
 import { Button } from './ui/button';
 import { Card, CardContent } from './ui/card';
-import { Badge } from './ui/badge';
 import { Switch } from './ui/switch';
 
 interface Notification {
@@ -161,15 +158,15 @@ export function NotificationScreen() {
   const unreadCount = notificationList.filter(n => !n.isRead).length;
 
   const markAsRead = (id: string) => {
-    setNotificationList(prev => 
-      prev.map(notification => 
+    setNotificationList(prev =>
+      prev.map(notification =>
         notification.id === id ? { ...notification, isRead: true } : notification
       )
     );
   };
 
   const markAllAsRead = () => {
-    setNotificationList(prev => 
+    setNotificationList(prev =>
       prev.map(notification => ({ ...notification, isRead: true }))
     );
   };
@@ -179,8 +176,8 @@ export function NotificationScreen() {
   };
 
   const toggleSetting = (id: string) => {
-    setSettings(prev => 
-      prev.map(setting => 
+    setSettings(prev =>
+      prev.map(setting =>
         setting.id === id ? { ...setting, enabled: !setting.enabled } : setting
       )
     );
@@ -219,8 +216,8 @@ export function NotificationScreen() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
           >
-            <div className="flex items-center justify-between mb-4">
-              <Button variant="ghost" size="sm" onClick={() => setShowSettings(false)}>
+            <div className="flex items-center justify-between mb-4 ">
+              <Button variant="ghost" size="sm" onClick={() => setShowSettings(false)}   className="cursor-pointer" >
                 <ChevronDown className="w-4 h-4 mr-2 rotate-90" />
                 Back
               </Button>
@@ -270,7 +267,7 @@ export function NotificationScreen() {
                 <p className="text-xs text-gray-600 mb-3">
                   Make sure to enable push notifications in your device settings to receive real-time updates.
                 </p>
-                <Button variant="outline" size="sm" className="text-xs">
+                <Button variant="outline" size="sm" className="text-xs cursor-pointer">
                   Open Device Settings
                 </Button>
               </CardContent>
@@ -299,13 +296,13 @@ export function NotificationScreen() {
             </div>
             <div className="flex items-center gap-2">
               {unreadCount > 0 && (
-                <Button variant="ghost" size="sm" onClick={markAllAsRead}>
-                  <Check className="w-4 h-4 mr-2" />
+                <Button variant="ghost" size="sm" className='cursor-pointer'  onClick={markAllAsRead}>
+                  <Check className="w-4 h-4 mr-2 " />
                   Mark all read
                 </Button>
               )}
-              <Button variant="ghost" size="sm" onClick={() => setShowSettings(true)}>
-                <Settings className="w-4 h-4" />
+              <Button variant="ghost" size="sm" onClick={() => setShowSettings(true)}   className="cursor-pointer">
+                <Settings className="w-4 h-4 " />
               </Button>
             </div>
           </div>
@@ -317,22 +314,20 @@ export function NotificationScreen() {
                 key={filter.key}
                 variant={activeFilter === filter.key ? "default" : "outline"}
                 size="sm"
-                className={`flex items-center gap-2 whitespace-nowrap ${
-                  activeFilter === filter.key 
-                    ? 'bg-blue-600 text-white' 
+                className={`flex items-center gap-2 whitespace-nowrap cursor-pointer ${activeFilter === filter.key
+                    ? 'bg-blue-600 text-white'
                     : 'bg-white text-gray-600 hover:bg-gray-50'
-                }`}
+                  }`}
                 onClick={() => setActiveFilter(filter.key as any)}
               >
                 {filter.label}
                 {filter.count > 0 && (
-                  <Badge 
-                    variant="secondary" 
-                    className={`text-xs px-1.5 py-0 ${
-                      activeFilter === filter.key 
-                        ? 'bg-white/20 text-white' 
+                  <Badge
+                    variant="secondary"
+                    className={`text-xs px-1.5 py-0 cursor-pointer ${activeFilter === filter.key
+                        ? 'bg-white/20 text-white'
                         : 'bg-gray-100 text-gray-600'
-                    }`}
+                      }`}
                   >
                     {filter.count}
                   </Badge>
@@ -352,8 +347,8 @@ export function NotificationScreen() {
             </div>
             <h3 className="text-lg mb-2">No notifications</h3>
             <p className="text-gray-600 text-center text-sm">
-              {activeFilter === 'unread' 
-                ? 'All notifications have been read' 
+              {activeFilter === 'unread'
+                ? 'All notifications have been read'
                 : 'You\'ll see notifications here when they arrive'
               }
             </p>
@@ -367,12 +362,11 @@ export function NotificationScreen() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.3, delay: 0.05 * index }}
               >
-                <Card 
-                  className={`cursor-pointer transition-all hover:shadow-md ${
-                    !notification.isRead 
-                      ? 'bg-blue-50 border-blue-200 shadow-sm' 
+                <Card
+                  className={`cursor-pointer transition-all hover:shadow-md ${!notification.isRead
+                      ? 'bg-blue-50 border-blue-200 shadow-sm'
                       : 'bg-white border-gray-200'
-                  }`}
+                    }`}
                   onClick={() => !notification.isRead && markAsRead(notification.id)}
                 >
                   <CardContent className="p-4">
@@ -395,21 +389,21 @@ export function NotificationScreen() {
                             <Button
                               variant="ghost"
                               size="sm"
-                              className="w-6 h-6 p-0 opacity-0 group-hover:opacity-100 hover:bg-red-100 hover:text-red-600"
+                              className="w-6 h-6 p-0 opacity-0 group-hover:opacity-100 hover:bg-red-100 hover:text-red-600 cursor-pointer"
                               onClick={(e) => {
                                 e.stopPropagation();
                                 deleteNotification(notification.id);
                               }}
                             >
-                              <Trash2 className="w-3 h-3" />
+                              <Trash2 className="w-3 h-3 cursor-pointer" />
                             </Button>
                           </div>
                         </div>
-                        
+
                         <p className="text-xs text-gray-600 mb-2 line-clamp-2">
                           {notification.message}
                         </p>
-                        
+
                         <div className="flex items-center justify-between">
                           <span className="text-xs text-gray-500">{notification.time}</span>
                           {notification.actionRequired && (
