@@ -1,39 +1,37 @@
-import { useEffect, useMemo, useState } from 'react';
-import { motion } from 'motion/react';
-import {URL} from "../URL";
-import { 
-  User, 
-  Phone, 
-  Mail, 
-  MapPin, 
-  Settings, 
-  HelpCircle, 
-  Shield, 
+import axios from 'axios';
+import {
   Bell,
-  ChevronRight,
-  Star,
-  Gift,
-  Wallet,
-  MessageCircle,
-  Users,
   Camera,
-  CreditCard,
-  Plus,
   Check,
-  X,
-  Edit3
+  ChevronRight,
+  CreditCard,
+  Edit3,
+  Gift,
+  Mail,
+  MapPin,
+  MessageCircle,
+  Phone,
+  Plus,
+  Settings,
+  Shield,
+  Star,
+  User,
+  Users,
+  Wallet,
+  X
 } from 'lucide-react';
-import { Card, CardContent } from './ui/card';
+import { motion } from 'motion/react';
+import { useEffect, useMemo, useState } from 'react';
+import { toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+import { useAuth } from '../contexts/AuthContext';
+import { URL } from "../URL";
 import { Avatar, AvatarFallback } from './ui/avatar';
 import { Badge } from './ui/badge';
 import { Button } from './ui/button';
+import { Card, CardContent } from './ui/card';
 import { Input } from './ui/input';
 import { Label } from './ui/label';
-import { Textarea } from './ui/textarea';
-import { useAuth } from '../contexts/AuthContext';
-import axios from 'axios';
-import { toast } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
 
 // <ToastContainer />
 const menuItems = [
@@ -100,16 +98,22 @@ const menuItems = [
 
 export function ProfileScreen() {
   const [activeScreen, setActiveScreen] = useState<string | null>(null);
-  const {logout} = useAuth()
-  const userData = useMemo(()=>{
+  const [showAddAddress, setShowAddAddress] = useState(false); // new state
+  const [addresses, setAddresses] = useState([
+    { id: 1, label: 'Home', address: 'MG Road, Bangalore, Karnataka 560001', isDefault: true },
+    { id: 2, label: 'Office', address: 'Koramangala, Bangalore, Karnataka 560034', isDefault: false },
+    { id: 3, label: 'Mom\'s Place', address: 'Indiranagar, Bangalore, Karnataka 560038', isDefault: false }
+  ]);
+  const { logout } = useAuth()
+  const userData = useMemo(() => {
     const user = localStorage.getItem('user');
     return user ? JSON.parse(user) : {};
-  },[])
+  }, [])
   const userRating = 4.8;
   const totalDeliveries = 23;
   const walletBalance = 1250;
-  
-  const handleLogOut = async() =>{
+
+  const handleLogOut = async () => {
     try {
       const res = await axios.post(
         `${URL}logout`,
@@ -120,7 +124,7 @@ export function ProfileScreen() {
           }
         }
       );
-      if (res.status === 200){
+      if (res.status === 200) {
         toast.success("Logout is success")
       }
     } catch (error) {
@@ -128,6 +132,21 @@ export function ProfileScreen() {
     }
     logout();
   }
+  //
+  const [newAddress, setNewAddress] = useState({ label: '', address: '' });
+
+  const handleAddAddress = () => {
+    if (!newAddress.label || !newAddress.address) {
+      toast.error('Please fill all fields');
+      return;
+    }
+    const newId = addresses.length ? Math.max(...addresses.map(a => a.id)) + 1 : 1;
+    setAddresses(prev => [...prev, { id: newId, label: newAddress.label, address: newAddress.address, isDefault: false }]);
+    toast.success('Address added successfully');
+    setNewAddress({ label: '', address: '' });
+    setShowAddAddress(false);
+  };
+
   const handleMenuClick = (itemId: string) => {
     if (itemId === 'addresses' || itemId === 'referrals' || itemId === 'support' || itemId === 'profile' || itemId === 'wallet') {
       setActiveScreen(itemId);
@@ -135,6 +154,93 @@ export function ProfileScreen() {
       console.log('Opening:', itemId);
     }
   };
+ // Screen renders
+  if (activeScreen === 'addresses') {
+    return (
+      <div className="flex flex-col h-full bg-gray-50">
+        <div className="bg-white px-6 py-4 shadow-sm">
+          <div className="flex items-center gap-4">
+            <Button variant="ghost" size="sm" onClick={() => setActiveScreen(null)} className='cursor-pointer'>
+              <ChevronRight className="w-4 h-4 mr-2 rotate-180" />
+              Back
+            </Button>
+            <h1 className="text-lg">Saved Addresses</h1>
+          </div>
+        </div>
+
+        <div className="flex-1 overflow-y-auto p-6 pb-24 md:pb-6">
+          <div className="space-y-4">
+            {addresses.map((address) => (
+              <Card key={address.id}>
+                <CardContent className="p-4 flex justify-between items-start">
+                  <div>
+                    <div className="flex items-center gap-2 mb-2">
+                      <h3 className="font-medium">{address.label}</h3>
+                      {address.isDefault && <Badge className="bg-green-100 text-green-700 text-xs">Default</Badge>}
+                    </div>
+                    <p className="text-sm text-gray-600">{address.address}</p>
+                  </div>
+                  <Button variant="ghost" size="sm" className='cursor-pointer'>
+                    <Settings className="w-4 h-4" />
+                  </Button>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+
+          {/* Add New Address Button */}
+          <button
+            className="mt-4 w-full bg-blue-600 text-white px-4 py-2 rounded cursor-pointer"
+            onClick={() => setShowAddAddress(true)}
+          >
+            Add New Address
+          </button>
+
+          {/* Add Address Modal */}
+          {showAddAddress && (
+            <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
+              <div className="bg-white rounded-lg w-96 p-6 relative">
+                <h2 className="text-lg font-medium mb-4">Add New Address</h2>
+                <div className="space-y-4">
+                  <div>
+                    <Label htmlFor="label">Label</Label>
+                    <Input
+                      id="label"
+                      value={newAddress.label}
+                      onChange={(e) => setNewAddress(prev => ({ ...prev, label: e.target.value }))}
+                      placeholder="Home / Office / Other"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="address">Address</Label>
+                    <Input
+                      id="address"
+                      value={newAddress.address}
+                      onChange={(e) => setNewAddress(prev => ({ ...prev, address: e.target.value }))}
+                      placeholder="Enter full address"
+                    />
+                  </div>
+                </div>
+
+                <div className="flex justify-end gap-2 mt-6">
+                  <Button variant="outline" onClick={() => setShowAddAddress(false)}>Cancel</Button>
+                  <Button onClick={handleAddAddress}>Save</Button>
+                </div>
+
+                <button
+                  className="absolute top-2 right-2 text-gray-500 hover:text-gray-700"
+                  onClick={() => setShowAddAddress(false)}
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  }
+
 
   if (activeScreen === 'profile') {
     return <EditProfileScreen onBack={() => setActiveScreen(null)} userData={userData} />;
@@ -197,60 +303,60 @@ export function ProfileScreen() {
       <div className="flex-1 overflow-y-auto">
         {/* Profile Section */}
         <div className="p-6">
-        <motion.div
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.5, delay: 0.1 }}
-        >
-          <Card className="bg-white border-0 shadow-sm">
-            <CardContent className="p-6">
-              <div className="flex items-center gap-4 mb-4">
-                <Avatar className="w-16 h-16">
-                  <AvatarFallback className="bg-blue-600 text-white text-xl">
-                    {userData?.name
-                      ? userData.name.split(' ').map(n => n[0]).join('')
-                      : 'U'}   {/* fallback initial if name is undefined */}
-                  </AvatarFallback>
-                    
-                </Avatar>
-                <div className="flex-1">
-                  <h2 className="text-lg mb-1">{userData?.name}</h2>
-                  <div className="flex items-center gap-2 mb-2">
-                    <Star className="w-4 h-4 text-yellow-500 fill-current" />
-                    <span className="text-sm">{userRating}</span>
-                    <span className="text-xs text-gray-500">({totalDeliveries} Orders)</span>
-                  </div>
-                  <Badge variant="secondary" className="bg-green-100 text-green-700 text-xs">
-                    Verified User
-                  </Badge>
-                </div>
-              </div>
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.5, delay: 0.1 }}
+          >
+            <Card className="bg-white border-0 shadow-sm">
+              <CardContent className="p-6">
+                <div className="flex items-center gap-4 mb-4">
+                  <Avatar className="w-16 h-16">
+                    <AvatarFallback className="bg-blue-600 text-white text-xl">
+                      {userData?.name
+                        ? userData.name.split(' ').map(n => n[0]).join('')
+                        : 'U'}   {/* fallback initial if name is undefined */}
+                    </AvatarFallback>
 
-              {/* Wallet Balance */}
-              <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg p-4 mb-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-xs text-gray-600 mb-1">Wallet Balance</p>
-                    <p className="text-xl font-semibold text-blue-600">₹{walletBalance}</p>
+                  </Avatar>
+                  <div className="flex-1">
+                    <h2 className="text-lg mb-1">{userData?.name}</h2>
+                    <div className="flex items-center gap-2 mb-2">
+                      <Star className="w-4 h-4 text-yellow-500 fill-current" />
+                      <span className="text-sm">{userRating}</span>
+                      <span className="text-xs text-gray-500">({totalDeliveries} Orders)</span>
+                    </div>
+                    <Badge variant="secondary" className="bg-green-100 text-green-700 text-xs">
+                      Verified User
+                    </Badge>
                   </div>
-                  <Wallet className="w-8 h-8 text-blue-600" />
                 </div>
-              </div>
 
-              <div className="space-y-3 pt-4 border-t">
-                <div className="flex items-center gap-3">
-                  <Mail className="w-4 h-4 text-gray-400" />
-                  <span className="text-sm text-gray-600">{userData?.email}</span>
+                {/* Wallet Balance */}
+                <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg p-4 mb-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-xs text-gray-600 mb-1">Wallet Balance</p>
+                      <p className="text-xl font-semibold text-blue-600">₹{walletBalance}</p>
+                    </div>
+                    <Wallet className="w-8 h-8 text-blue-600" />
+                  </div>
                 </div>
-                <div className="flex items-center gap-3">
-                  <Phone className="w-4 h-4 text-gray-400" />
-                  <span className="text-sm text-gray-600">{userData?.mobileNumber}</span>
+
+                <div className="space-y-3 pt-4 border-t">
+                  <div className="flex items-center gap-3">
+                    <Mail className="w-4 h-4 text-gray-400" />
+                    <span className="text-sm text-gray-600">{userData?.email}</span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <Phone className="w-4 h-4 text-gray-400" />
+                    <span className="text-sm text-gray-600">{userData?.mobileNumber}</span>
+                  </div>
                 </div>
-              </div>
-            </CardContent>
-          </Card>
-        </motion.div>
-      </div>
+              </CardContent>
+            </Card>
+          </motion.div>
+        </div>
 
         {/* Menu Items */}
         <div className="px-6 pb-24 md:pb-6">
@@ -262,7 +368,7 @@ export function ProfileScreen() {
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ duration: 0.3, delay: 0.1 * index }}
               >
-                <Card 
+                <Card
                   className="bg-white border-0 shadow-sm cursor-pointer hover:shadow-md transition-shadow"
                   onClick={() => handleMenuClick(item.id)}
                 >
@@ -357,17 +463,17 @@ function EditProfileScreen({ onBack, userData }: { onBack: () => void; userData:
     }
     setIsEditing(false);
   };
-  useEffect(()=>{
-    const userInfo = async () =>{
-      const res = await axios.get(`${URL}get-user-info`,{
-        headers:{
+  useEffect(() => {
+    const userInfo = async () => {
+      const res = await axios.get(`${URL}get-user-info`, {
+        headers: {
           'Authorization': userData?.authToken
         },
         params: {
-          userId : userData?.userId
+          userId: userData?.userId
         }
       })
-      if (res.status === 200){
+      if (res.status === 200) {
         const isoDate = res.data.data.date_of_birth;
         const formattedDate = isoDate ? isoDate.split('T')[0] : '';
         setFormData(prev => ({
@@ -408,11 +514,11 @@ function EditProfileScreen({ onBack, userData }: { onBack: () => void; userData:
         };
 
         updateUserInfo();
-        
+
       }
     };
     userInfo();
-  },[])
+  }, [])
   const handleCancel = () => {
     setIsEditing(false);
   };
@@ -455,9 +561,8 @@ function EditProfileScreen({ onBack, userData }: { onBack: () => void; userData:
             <div className="text-center">
               <div className="relative inline-block mb-4">
                 <Avatar className="w-24 h-24">
-                  <AvatarFallback className={`text-white text-2xl transition-colors ${
-                    isEditing ? 'bg-purple-600' : 'bg-blue-600'
-                  }`}>
+                  <AvatarFallback className={`text-white text-2xl transition-colors ${isEditing ? 'bg-purple-600' : 'bg-blue-600'
+                    }`}>
                     {formData.name.split(' ').map(n => n[0]).join('')}
                   </AvatarFallback>
                 </Avatar>
@@ -465,7 +570,7 @@ function EditProfileScreen({ onBack, userData }: { onBack: () => void; userData:
                   <Button
                     size="sm"
                     className="cursor-pointer absolute -bottom-2 -right-2 w-8 h-8 rounded-full p-0 bg-blue-600 hover:bg-blue-700"
-                    // onClick={() => console.log('Change profile photo')}
+                  // onClick={() => console.log('Change profile photo')}
                   >
                     <Camera className="w-4 h-4" />
                   </Button>
@@ -492,7 +597,7 @@ function EditProfileScreen({ onBack, userData }: { onBack: () => void; userData:
                   className={!isEditing ? 'bg-gray-50' : ''}
                 />
               </div>
-              
+
               <div>
                 <Label htmlFor="email">Email Address</Label>
                 <Input
@@ -504,7 +609,7 @@ function EditProfileScreen({ onBack, userData }: { onBack: () => void; userData:
                   className={!isEditing ? 'bg-gray-50' : ''}
                 />
               </div>
-              
+
               <div>
                 <Label htmlFor="phone">Phone Number</Label>
                 <Input
@@ -515,7 +620,7 @@ function EditProfileScreen({ onBack, userData }: { onBack: () => void; userData:
                   className={!isEditing ? 'bg-gray-50' : ''}
                 />
               </div>
-              
+
               <div>
                 <Label htmlFor="dob">Date of Birth</Label>
                 <Input
@@ -527,7 +632,7 @@ function EditProfileScreen({ onBack, userData }: { onBack: () => void; userData:
                   className={!isEditing ? 'bg-gray-50' : ''}
                 />
               </div>
-              
+
               <div>
                 <Label htmlFor="gender">Gender</Label>
                 {isEditing ? (
@@ -582,7 +687,7 @@ function EditProfileScreen({ onBack, userData }: { onBack: () => void; userData:
 // Wallet & Payments Screen
 function WalletPaymentsScreen({ onBack, walletBalance }: { onBack: () => void; walletBalance: number }) {
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<string | null>(null);
-  
+
   const paymentMethods = [
     { id: 'upi', name: 'UPI', details: 'john.doe@paytm', icon: '📱', isDefault: true },
     { id: 'card1', name: 'Credit Card', details: '**** **** **** 1234', icon: '💳', isDefault: false },
@@ -636,7 +741,7 @@ function WalletPaymentsScreen({ onBack, walletBalance }: { onBack: () => void; w
               <h3 className="text-sm font-medium">Add Money</h3>
             </CardContent>
           </Card>
-          
+
           <Card className="cursor-pointer hover:shadow-md transition-shadow">
             <CardContent className="p-4 text-center">
               <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-2">
@@ -645,7 +750,7 @@ function WalletPaymentsScreen({ onBack, walletBalance }: { onBack: () => void; w
               <h3 className="text-sm font-medium">Pay Bills</h3>
             </CardContent>
           </Card>
-          
+
           <Card className="cursor-pointer hover:shadow-md transition-shadow">
             <CardContent className="p-4 text-center">
               <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-2">
@@ -666,16 +771,15 @@ function WalletPaymentsScreen({ onBack, walletBalance }: { onBack: () => void; w
                 Add New
               </Button>
             </div>
-            
+
             <div className="space-y-3">
               {paymentMethods.map((method) => (
                 <div
                   key={method.id}
-                  className={`p-4 border rounded-lg cursor-pointer transition-colors ${
-                    selectedPaymentMethod === method.id 
-                      ? 'border-blue-500 bg-blue-50' 
-                      : 'border-gray-200 hover:border-gray-300'
-                  }`}
+                  className={`p-4 border rounded-lg cursor-pointer transition-colors ${selectedPaymentMethod === method.id
+                    ? 'border-blue-500 bg-blue-50'
+                    : 'border-gray-200 hover:border-gray-300'
+                    }`}
                   onClick={() => setSelectedPaymentMethod(method.id)}
                 >
                   <div className="flex items-center justify-between">
@@ -707,9 +811,8 @@ function WalletPaymentsScreen({ onBack, walletBalance }: { onBack: () => void; w
               {recentTransactions.map((transaction) => (
                 <div key={transaction.id} className="flex items-center justify-between py-2">
                   <div className="flex items-center gap-3">
-                    <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
-                      transaction.type === 'credit' ? 'bg-green-100' : 'bg-red-100'
-                    }`}>
+                    <div className={`w-10 h-10 rounded-full flex items-center justify-center ${transaction.type === 'credit' ? 'bg-green-100' : 'bg-red-100'
+                      }`}>
                       {transaction.type === 'credit' ? (
                         <Plus className="w-5 h-5 text-green-600" />
                       ) : (
@@ -721,9 +824,8 @@ function WalletPaymentsScreen({ onBack, walletBalance }: { onBack: () => void; w
                       <p className="text-xs text-gray-600">{transaction.date} • {transaction.method}</p>
                     </div>
                   </div>
-                  <span className={`font-medium ${
-                    transaction.type === 'credit' ? 'text-green-600' : 'text-red-600'
-                  }`}>
+                  <span className={`font-medium ${transaction.type === 'credit' ? 'text-green-600' : 'text-red-600'
+                    }`}>
                     {transaction.type === 'credit' ? '+' : '-'}₹{transaction.amount}
                   </span>
                 </div>
@@ -731,66 +833,6 @@ function WalletPaymentsScreen({ onBack, walletBalance }: { onBack: () => void; w
             </div>
           </CardContent>
         </Card>
-      </div>
-    </div>
-  );
-}
-
-// Saved Addresses Screen
-function SavedAddressesScreen({ onBack }: { onBack: () => void }) {
-  const addresses = [
-    { id: 1, label: 'Home', address: 'MG Road, Bangalore, Karnataka 560001', isDefault: true },
-    { id: 2, label: 'Office', address: 'Koramangala, Bangalore, Karnataka 560034', isDefault: false },
-    { id: 3, label: 'Mom\'s Place', address: 'Indiranagar, Bangalore, Karnataka 560038', isDefault: false }
-  ];
-
-  return (
-    <div className="flex flex-col h-full bg-gray-50">
-      <div className="bg-white px-6 py-4 shadow-sm">
-        <div className="flex items-center gap-4">
-          <Button variant="ghost" size="sm" onClick={onBack} className='cursor-pointer'>
-            <ChevronRight className="w-4 h-4 mr-2 rotate-180" />
-            Back
-          </Button>
-          <h1 className="text-lg">Saved Addresses</h1>
-        </div>
-      </div>
-
-      <div className="flex-1 overflow-y-auto p-6 pb-24 md:pb-6">
-        <div className="space-y-4">
-          {addresses.map((address, index) => (
-            <motion.div
-              key={address.id}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.3, delay: index * 0.1 }}
-            >
-              <Card>
-                <CardContent className="p-4">
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-2">
-                        <h3 className="font-medium">{address.label}</h3>
-                        {address.isDefault && (
-                          <Badge className="bg-green-100 text-green-700 text-xs">Default</Badge>
-                        )}
-                      </div>
-                      <p className="text-sm text-gray-600">{address.address}</p>
-                    </div>
-                    <Button variant="ghost" size="sm" className='cursor-pointer'>
-                      <Settings className="w-4 h-4" />
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            </motion.div>
-          ))}
-        </div>
-
-        <Button className="w-full mt-6 bg-blue-600 hover:bg-blue-700 cursor-pointer">
-          <MapPin className="w-4 h-4 mr-2" />
-          Add New Address
-        </Button>
       </div>
     </div>
   );
@@ -827,7 +869,7 @@ function ReferralProgramScreen({ onBack }: { onBack: () => void }) {
               <p className="text-gray-600 text-sm mb-4">
                 Share your referral code and earn ₹100 wallet credit for each successful referral
               </p>
-              
+
               <div className="bg-gray-100 rounded-lg p-4 mb-4">
                 <p className="text-xs text-gray-600 mb-1">Your Referral Code</p>
                 <p className="text-2xl font-mono font-bold tracking-wider">{referralCode}</p>
@@ -950,11 +992,10 @@ function SupportChatScreen({ onBack }: { onBack: () => void }) {
             animate={{ opacity: 1, y: 0 }}
             className={`flex ${message.isBot ? 'justify-start' : 'justify-end'}`}
           >
-            <div className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg ${
-              message.isBot 
-                ? 'bg-white border border-gray-200' 
-                : 'bg-blue-600 text-white'
-            }`}>
+            <div className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg ${message.isBot
+              ? 'bg-white border border-gray-200'
+              : 'bg-blue-600 text-white'
+              }`}>
               <p className="text-sm">{message.text}</p>
               <p className={`text-xs mt-1 ${message.isBot ? 'text-gray-500' : 'text-blue-100'}`}>
                 {message.timestamp}

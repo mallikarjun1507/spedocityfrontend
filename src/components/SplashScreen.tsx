@@ -31,19 +31,13 @@ export function SplashScreen({ onComplete }: SplashScreenProps) {
           transition={{ delay: 0.3, duration: 0.6 }}
           className="mb-8"
         >
-          <div className="w-24 h-24 mx-auto mb-6 bg-white rounded-full flex items-center justify-center">
-            <svg
-              width="48"
-              height="48"
-              viewBox="0 0 24 24"
-              fill="none"
-              className="text-blue-600"
-            >
-              <path
-                d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"
-                fill="currentColor"
-              />
-            </svg>
+           {/* ✅ Company Logo (logo.jpg in public folder) */}
+          <div className="w-24 h-24 mx-auto mb-6 bg-white rounded-full flex items-center justify-center overflow-hidden">
+            <img
+              src="/logo.jpg" // <-- use logo.jpg here
+              alt="Spedocity Logo"
+              className="w-16 h-16 object-contain"
+            />
           </div>
           <h1 className="text-4xl mb-2">Spedocity</h1>
         </motion.div>

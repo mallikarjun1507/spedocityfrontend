@@ -1,22 +1,22 @@
-import { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
-import { ArrowLeft, Phone, Mail, CheckCircle, RefreshCw } from 'lucide-react';
+import axios from "axios";
+import { ArrowLeft, CheckCircle, Mail, Phone, RefreshCw } from 'lucide-react';
+import { AnimatePresence, motion } from 'motion/react';
+import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import { useAuth } from '../contexts/AuthContext';
+import { URL } from "../URL";
 import { Button } from './ui/button';
 import { Input } from './ui/input';
+import { InputOTP, InputOTPGroup, InputOTPSlot } from './ui/input-otp';
 import { Label } from './ui/label';
 import { Separator } from './ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
-import { InputOTP, InputOTPGroup, InputOTPSlot } from './ui/input-otp';
-import { toast } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
-import axios from "axios";
-import { useAuth } from '../contexts/AuthContext';
-import { useNavigate } from 'react-router-dom';
 interface LoginSignupProps {
   onBack: () => void;
   onComplete: () => void;
 }
-import { URL } from "../URL";
 
 type AuthStep = 'input' | 'otp-sent' | 'otp-verified' | 'google-auth';
 
@@ -44,19 +44,19 @@ export function LoginSignup({ onBack, onComplete }: LoginSignupProps) {
   const validatePhoneNumber = (number: string): boolean => {
     // Remove any non-digit characters
     const cleanedNumber = number.replace(/\D/g, '');
-    
+
     // Check if the number has exactly 10 digits
     if (cleanedNumber.length !== 10) {
       toast.error("Please enter a valid 10-digit phone number");
       return false;
     }
-    
+
     // Check if the number contains only digits
     if (!/^\d+$/.test(cleanedNumber)) {
       toast.error("Phone number should contain only digits");
       return false;
     }
-    
+
     return true;
   };
 
@@ -100,88 +100,88 @@ export function LoginSignup({ onBack, onComplete }: LoginSignupProps) {
   };
 
   const handleVerifyOTP = async () => {
-      if (otp.length !== 6) {
-        toast.error("Please enter a 6-digit OTP");
-        return;
-      }
-  
-      setIsLoading(true);
-  
-      try {
-        const response = await axios.post(`${URL}verify-otp`, {
-          sessionId: sessionId,
-          otp: otp,
+    if (otp.length !== 6) {
+      toast.error("Please enter a 6-digit OTP");
+      return;
+    }
+
+    setIsLoading(true);
+
+    try {
+      const response = await axios.post(`${URL}verify-otp`, {
+        sessionId: sessionId,
+        otp: otp,
+      });
+
+      const data = response.data;
+
+      if (data.success) {
+        setIsLoading(false);
+        setAuthStep("otp-verified");
+
+        // Use the context login method instead of direct localStorage
+        login(data.data.token, {
+          userId: data.data.user_id,
+          mobileNumber: data.data.mobile_number,
         });
-  
-        const data = response.data;
-  
-        if (data.success) {
-          setIsLoading(false);
-          setAuthStep("otp-verified");
-  
-          // Use the context login method instead of direct localStorage
-          login(data.data.token, {
+
+        setTimeout(() => {
+          onComplete(data.data.token, {
             userId: data.data.user_id,
             mobileNumber: data.data.mobile_number,
           });
-  
-          setTimeout(() => {
-            onComplete(data.data.token, {
-              userId: data.data.user_id,
-              mobileNumber: data.data.mobile_number,
-            });
-          }, 1000);
-  
-          toast.success("OTP verified successfully");
-          navigate("dashboard/home")
-        } else {
-          throw new Error(data.message || "Invalid OTP");
-        }
-      } catch (error: any) {
-        setIsLoading(false);
-        toast.error(
-          error.response?.data?.message || error.message || "Failed to verify OTP. Please try again."
-        );
+        }, 1000);
+
+        toast.success("OTP verified successfully");
+        navigate("dashboard/home")
+      } else {
+        throw new Error(data.message || "Invalid OTP");
       }
+    } catch (error: any) {
+      setIsLoading(false);
+      toast.error(
+        error.response?.data?.message || error.message || "Failed to verify OTP. Please try again."
+      );
+    }
   };
   const handleResendOTP = async () => {
-  if (countdown > 0) return;
+    if (countdown > 0) return;
 
-  setIsLoading(true);
+    setIsLoading(true);
 
-  try {
-    // Format the phone number with country code
-    const formattedNumber = `+91${phoneNumber.replace(/\D/g, "")}`;
+    try {
+      // Format the phone number with country code
+      const formattedNumber = `+91${phoneNumber.replace(/\D/g, "")}`;
 
-    // Resend OTP request
-    const response = await axios.post(`${URL}resend-otp`, {
-      number: formattedNumber,
-    });
+      // Resend OTP request
+      const response = await axios.post(`${URL}resend-otp`, {
+        number: formattedNumber,
+      });
 
-    const data = response.data;
+      const data = response.data;
 
-    if (response.status === 200) {
-      // Update session ID
-      setSessionId(data.sessionId);
+      if (response.status === 200) {
+        // Update session ID
+        setSessionId(data.sessionId);
+        setIsLoading(false);
+        setCountdown(30);
+        setOtp("");
+        toast.success("OTP resent successfully");
+      } else {
+        throw new Error(data.message || "Failed to resend OTP");
+      }
+    } catch (error: any) {
       setIsLoading(false);
-      setCountdown(30);
-      setOtp("");
-      toast.success("OTP resent successfully");
-    } else {
-      throw new Error(data.message || "Failed to resend OTP");
+
+      // ✅ Always show API message if available
+      const message =
+        error.response?.data?.message ||
+        error.message ||
+        "Failed to resend OTP. Please try again.";
+
+      toast.error(message);
     }
-  } catch (error: any) {
-    setIsLoading(false);
-
-    // ✅ Always show API message if available
-    const message =
-      error.response?.data?.message ||
-      error.message ||
-      "Failed to resend OTP. Please try again.";
-
-    toast.error(message);
-  }
-};
+  };
 
 
   const handleEmailAuth = async () => {
@@ -189,10 +189,10 @@ export function LoginSignup({ onBack, onComplete }: LoginSignupProps) {
       toast.error("Please enter both email and password");
       return;
     }
-    
+
     setIsLoading(true);
     setActiveAuthMethod('email');
-    
+
     // Simulate email auth (you would replace this with your actual API call)
     setTimeout(() => {
       setIsLoading(false);
@@ -204,7 +204,7 @@ export function LoginSignup({ onBack, onComplete }: LoginSignupProps) {
     setIsLoading(true);
     setActiveAuthMethod('google');
     setAuthStep('google-auth');
-    
+
     // Simulate Google auth (you would replace this with your actual API call)
     setTimeout(() => {
       setIsLoading(false);
@@ -223,10 +223,10 @@ export function LoginSignup({ onBack, onComplete }: LoginSignupProps) {
   // Format phone number as user types
   const handlePhoneNumberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const input = e.target.value;
-    
+
     // Remove any non-digit characters
     const cleaned = input.replace(/\D/g, '');
-    
+
     // Limit to 10 digits
     if (cleaned.length <= 10) {
       setPhoneNumber(cleaned);
@@ -242,10 +242,10 @@ export function LoginSignup({ onBack, onComplete }: LoginSignupProps) {
           Back
         </Button>
         <h1 className="text-xl">
-          {authStep === 'otp-sent' ? 'Verify Phone' : 
-           authStep === 'otp-verified' ? 'Success!' :
-           authStep === 'google-auth' ? 'Google Sign In' :
-           'Welcome to Spedocity'}
+          {authStep === 'otp-sent' ? 'Verify Phone' :
+            authStep === 'otp-verified' ? 'Success!' :
+              authStep === 'google-auth' ? 'Google Sign In' :
+                'Welcome to Spedocity'}
         </h1>
         <div className="w-16" /> {/* Spacer */}
       </div>
@@ -265,20 +265,14 @@ export function LoginSignup({ onBack, onComplete }: LoginSignupProps) {
             >
               {/* Logo */}
               <div className="text-center mb-8">
-                <div className="w-16 h-16 mx-auto mb-4 bg-blue-600 rounded-full flex items-center justify-center">
-                  <svg 
-                    width="32" 
-                    height="32" 
-                    viewBox="0 0 24 24" 
-                    fill="none" 
-                    className="text-white"
-                  >
-                    <path 
-                      d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" 
-                      fill="currentColor"
-                    />
-                  </svg>
+                <div className="w-16 h-16 mx-auto mb-4 bg-blue-600 rounded-full flex items-center justify-center overflow-hidden">
+                  <img
+                    src="/logo.jpg"   
+                    alt="Spedocity Logo"
+                    className="w-10 h-10 object-contain"
+                  />
                 </div>
+
                 <p className="text-gray-600">Sign in to start your delivery journey</p>
               </div>
 
@@ -448,9 +442,9 @@ export function LoginSignup({ onBack, onComplete }: LoginSignupProps) {
               {/* OTP Input */}
               <div className="space-y-4">
                 <div className="flex justify-center">
-                  <InputOTP 
-                    maxLength={6} 
-                    value={otp} 
+                  <InputOTP
+                    maxLength={6}
+                    value={otp}
                     onChange={setOtp}
                     disabled={isLoading}
                   >
@@ -490,8 +484,8 @@ export function LoginSignup({ onBack, onComplete }: LoginSignupProps) {
                       Resend OTP in {countdown} seconds
                     </p>
                   ) : (
-                    <Button 
-                      variant="ghost" 
+                    <Button
+                      variant="ghost"
                       onClick={handleResendOTP}
                       disabled={isLoading}
                       className="text-blue-600 hover:text-blue-700"
@@ -503,8 +497,8 @@ export function LoginSignup({ onBack, onComplete }: LoginSignupProps) {
 
                 {/* Change Number */}
                 <div className="text-center">
-                  <Button 
-                    variant="ghost" 
+                  <Button
+                    variant="ghost"
                     onClick={handleBackToInput}
                     className="text-gray-500 hover:text-gray-700"
                   >
