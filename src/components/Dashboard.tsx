@@ -158,7 +158,10 @@ export function Dashboard({ onStartBooking, onTrackOrder, currentOrderId }: Dash
               <p className="text-gray-600 text-sm">Where do you want to deliver today?</p>
             </div>
             <div className="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center">
-              <span className="text-white text-sm">{userData?.name.charAt(0)}</span>
+              <span className="text-white text-sm">
+                {userData?.name ? userData.name.charAt(0) : "U"}
+              </span>
+
             </div>
           </div>
 

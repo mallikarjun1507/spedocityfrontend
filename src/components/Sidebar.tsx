@@ -44,8 +44,8 @@ export function Sidebar({ activeTab, onTabChange, expanded, onToggle }: SidebarP
                 transition={{ duration: 0.2, delay: 0.1 }}
                 className="flex flex-col"
               >
-                <span className="font-bold text-lg text-gray-900">Spedocity</span>
-                <span className="text-xs text-gray-500">Speed. Safety. Spedocity.</span>
+                {/*<span className="font-bold text-lg text-gray-900">Spedocity</span>
+                <span className="text-xs text-gray-500">Speed. Safety. Spedocity.</span>*/}
               </motion.div>
             )}
           </AnimatePresence>
