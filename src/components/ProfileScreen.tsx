@@ -1,6 +1,11 @@
+import {
+  Autocomplete,
+  GoogleMap,
+  Marker,
+  useJsApiLoader,
+} from "@react-google-maps/api";
 import axios from 'axios';
 import {
-  Bell,
   Camera,
   Check,
   ChevronRight,
@@ -15,6 +20,7 @@ import {
   Settings,
   Shield,
   Star,
+  Trash2,
   User,
   Users,
   Wallet,
@@ -32,6 +38,7 @@ import { Button } from './ui/button';
 import { Card, CardContent } from './ui/card';
 import { Input } from './ui/input';
 import { Label } from './ui/label';
+
 
 // <ToastContainer />
 const menuItems = [
@@ -73,13 +80,7 @@ const menuItems = [
     color: 'bg-blue-100 text-blue-600',
     badge: 'Live'
   },
-  {
-    id: 'notifications',
-    icon: Bell,
-    title: 'Notifications',
-    subtitle: 'Configure your preferences',
-    color: 'bg-orange-100 text-orange-600'
-  },
+
   {
     id: 'privacy',
     icon: Shield,
@@ -87,23 +88,175 @@ const menuItems = [
     subtitle: 'Control your data and security',
     color: 'bg-red-100 text-red-600'
   },
-  {
-    id: 'settings',
-    icon: Settings,
-    title: 'Settings',
-    subtitle: 'App preferences and more',
-    color: 'bg-indigo-100 text-indigo-600'
-  }
+
 ];
 
 export function ProfileScreen() {
   const [activeScreen, setActiveScreen] = useState<string | null>(null);
-  const [showAddAddress, setShowAddAddress] = useState(false); // new state
-  const [addresses, setAddresses] = useState([
-    { id: 1, label: 'Home', address: 'MG Road, Bangalore, Karnataka 560001', isDefault: true },
-    { id: 2, label: 'Office', address: 'Koramangala, Bangalore, Karnataka 560034', isDefault: false },
-    { id: 3, label: 'Mom\'s Place', address: 'Indiranagar, Bangalore, Karnataka 560038', isDefault: false }
-  ]);
+
+  const containerStyle = {
+    width: "100%",
+    height: "400px",
+  };
+
+  const defaultCenter = {
+    lat: 12.9716,
+    lng: 77.5946, // Bengaluru
+  };
+  interface AddressManagerProps {
+    onBack: () => void;
+  }
+
+  function AddressManager({ onBack }: AddressManagerProps) {
+    const [addresses, setAddresses] = useState([
+      { id: 1, label: "Home", address: "123 MG Road, Bengaluru" },
+      { id: 2, label: "Office", address: "IT Park, Whitefield" },
+    ]);
+
+    const [showMap, setShowMap] = useState(false);
+    const [selectedLocation, setSelectedLocation] = useState<any>(null);
+    const [autocomplete, setAutocomplete] = useState<any>(null);
+    const [map, setMap] = useState<any>(null);
+
+    // Google Maps Loader
+    const { isLoaded } = useJsApiLoader({
+      googleMapsApiKey: "YOUR_GOOGLE_MAPS_API_KEY", // replace with your key
+      libraries: ["places"],
+    });
+
+    const onLoadAutocomplete = (auto: any) => setAutocomplete(auto);
+
+    const onPlaceChanged = () => {
+      if (autocomplete) {
+        const place = autocomplete.getPlace();
+        if (place.geometry) {
+          const location = place.geometry.location;
+          setSelectedLocation({
+            lat: location.lat(),
+            lng: location.lng(),
+            address: place.formatted_address,
+          });
+          map?.panTo(location);
+        }
+      }
+    };
+
+    const handleSaveAddress = () => {
+      if (!selectedLocation) {
+        toast.error("Please select a location");
+        return;
+      }
+      const newId = addresses.length
+        ? Math.max(...addresses.map((a) => a.id)) + 1
+        : 1;
+      setAddresses([
+        ...addresses,
+        {
+          id: newId,
+          label: `Address ${newId}`,
+          address: selectedLocation.address,
+        },
+      ]);
+      setShowMap(false);
+      setSelectedLocation(null);
+      toast.success("Address added successfully");
+    };
+
+    const handleDelete = (id: number) => {
+      setAddresses(addresses.filter((a) => a.id !== id));
+      toast.success("Address deleted");
+    };
+    return (
+      <div className="p-6">
+        {/* Add Button */}
+        <div className="mb-6">
+          <Button
+            onClick={() => setShowMap(true)}
+            className="flex items-center gap-2 rounded-full"
+          >
+            <Plus className="w-4 h-4" /> Add New Address
+          </Button>
+        </div>
+
+        {/* Saved Address Cards */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          {addresses.map((addr) => (
+            <div
+              key={addr.id}
+              className="border rounded-lg shadow-sm p-4 flex flex-col justify-between"
+            >
+              <div>
+                <p className="font-medium">{addr.label}</p>
+                <p className="text-gray-600 text-sm">{addr.address}</p>
+              </div>
+              <div className="flex gap-3 mt-3">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="flex-1"
+                  onClick={() => toast.info("Edit feature coming soon")}
+                >
+                  <Edit3 className="w-4 h-4 mr-1" /> Edit
+                </Button>
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  className="flex-1"
+                  onClick={() => handleDelete(addr.id)}
+                >
+                  <Trash2 className="w-4 h-4 mr-1" /> Delete
+                </Button>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Map Modal */}
+        {showMap && isLoaded && (
+          <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center">
+            <div className="bg-white rounded-lg w-full max-w-lg p-4 shadow-lg relative">
+              {/* Search Box */}
+              <Autocomplete onLoad={onLoadAutocomplete} onPlaceChanged={onPlaceChanged}>
+                <input
+                  type="text"
+                  placeholder="Search address..."
+                  className="w-full border px-3 py-2 rounded mb-3"
+                />
+              </Autocomplete>
+
+              {/* Google Map */}
+              <GoogleMap
+                mapContainerStyle={containerStyle}
+                center={selectedLocation || defaultCenter}
+                zoom={14}
+                onLoad={(mapInstance) => setMap(mapInstance)}
+                onClick={(e) =>
+                  setSelectedLocation({
+                    lat: e.latLng?.lat(),
+                    lng: e.latLng?.lng(),
+                    address: "Selected location (click Save to confirm)",
+                  })
+                }
+              >
+                {selectedLocation && (
+                  <Marker position={{ lat: selectedLocation.lat, lng: selectedLocation.lng }} />
+                )}
+              </GoogleMap>
+
+              {/* Actions */}
+              <div className="flex justify-end gap-3 mt-4">
+                <Button variant="outline" onClick={() => setShowMap(false)}>
+                  Cancel
+                </Button>
+                <Button onClick={handleSaveAddress}>Save & Confirm</Button>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  }
+
   const { logout } = useAuth()
   const userData = useMemo(() => {
     const user = localStorage.getItem('user');
@@ -112,7 +265,6 @@ export function ProfileScreen() {
   const userRating = 4.8;
   const totalDeliveries = 23;
   const walletBalance = 1250;
-
   const handleLogOut = async () => {
     try {
       const res = await axios.post(
@@ -132,20 +284,6 @@ export function ProfileScreen() {
     }
     logout();
   }
-  //
-  const [newAddress, setNewAddress] = useState({ label: '', address: '' });
-
-  const handleAddAddress = () => {
-    if (!newAddress.label || !newAddress.address) {
-      toast.error('Please fill all fields');
-      return;
-    }
-    const newId = addresses.length ? Math.max(...addresses.map(a => a.id)) + 1 : 1;
-    setAddresses(prev => [...prev, { id: newId, label: newAddress.label, address: newAddress.address, isDefault: false }]);
-    toast.success('Address added successfully');
-    setNewAddress({ label: '', address: '' });
-    setShowAddAddress(false);
-  };
 
   const handleMenuClick = (itemId: string) => {
     if (itemId === 'addresses' || itemId === 'referrals' || itemId === 'support' || itemId === 'profile' || itemId === 'wallet') {
@@ -154,96 +292,13 @@ export function ProfileScreen() {
       console.log('Opening:', itemId);
     }
   };
- // Screen renders
-  if (activeScreen === 'addresses') {
-    return (
-      <div className="flex flex-col h-full bg-gray-50">
-        <div className="bg-white px-6 py-4 shadow-sm">
-          <div className="flex items-center gap-4">
-            <Button variant="ghost" size="sm" onClick={() => setActiveScreen(null)} className='cursor-pointer'>
-              <ChevronRight className="w-4 h-4 mr-2 rotate-180" />
-              Back
-            </Button>
-            <h1 className="text-lg">Saved Addresses</h1>
-          </div>
-        </div>
-
-        <div className="flex-1 overflow-y-auto p-6 pb-24 md:pb-6">
-          <div className="space-y-4">
-            {addresses.map((address) => (
-              <Card key={address.id}>
-                <CardContent className="p-4 flex justify-between items-start">
-                  <div>
-                    <div className="flex items-center gap-2 mb-2">
-                      <h3 className="font-medium">{address.label}</h3>
-                      {address.isDefault && <Badge className="bg-green-100 text-green-700 text-xs">Default</Badge>}
-                    </div>
-                    <p className="text-sm text-gray-600">{address.address}</p>
-                  </div>
-                  <Button variant="ghost" size="sm" className='cursor-pointer'>
-                    <Settings className="w-4 h-4" />
-                  </Button>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-
-          {/* Add New Address Button */}
-          <button
-            className="mt-4 w-full bg-blue-600 text-white px-4 py-2 rounded cursor-pointer"
-            onClick={() => setShowAddAddress(true)}
-          >
-            Add New Address
-          </button>
-
-          {/* Add Address Modal */}
-          {showAddAddress && (
-            <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
-              <div className="bg-white rounded-lg w-96 p-6 relative">
-                <h2 className="text-lg font-medium mb-4">Add New Address</h2>
-                <div className="space-y-4">
-                  <div>
-                    <Label htmlFor="label">Label</Label>
-                    <Input
-                      id="label"
-                      value={newAddress.label}
-                      onChange={(e) => setNewAddress(prev => ({ ...prev, label: e.target.value }))}
-                      placeholder="Home / Office / Other"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="address">Address</Label>
-                    <Input
-                      id="address"
-                      value={newAddress.address}
-                      onChange={(e) => setNewAddress(prev => ({ ...prev, address: e.target.value }))}
-                      placeholder="Enter full address"
-                    />
-                  </div>
-                </div>
-
-                <div className="flex justify-end gap-2 mt-6">
-                  <Button variant="outline" onClick={() => setShowAddAddress(false)}>Cancel</Button>
-                  <Button onClick={handleAddAddress}>Save</Button>
-                </div>
-
-                <button
-                  className="absolute top-2 right-2 text-gray-500 hover:text-gray-700"
-                  onClick={() => setShowAddAddress(false)}
-                >
-                  <X className="w-5 h-5" />
-                </button>
-              </div>
-            </div>
-          )}
-        </div>
-      </div>
-    );
-  }
 
 
-  if (activeScreen === 'profile') {
-    return <EditProfileScreen onBack={() => setActiveScreen(null)} userData={userData} />;
+
+  {
+    userData && (
+      <EditProfileScreen onBack={() => setActiveScreen(null)} userData={userData} />
+    )
   }
 
   if (activeScreen === 'wallet') {
@@ -251,7 +306,7 @@ export function ProfileScreen() {
   }
 
   if (activeScreen === 'addresses') {
-    return <SavedAddressesScreen onBack={() => setActiveScreen(null)} />;
+    return <AddressManager onBack={() => setActiveScreen(null)} />;
   }
 
   if (activeScreen === 'referrals') {
@@ -314,8 +369,11 @@ export function ProfileScreen() {
                   <Avatar className="w-16 h-16">
                     <AvatarFallback className="bg-blue-600 text-white text-xl">
                       {userData?.name
-                        ? userData.name.split(' ').map(n => n[0]).join('')
-                        : 'U'}   {/* fallback initial if name is undefined */}
+                        ? (userData.name as string) // explicitly tell TS this is a string
+                          .split(' ')
+                          .map((n: string) => n[0]) // n is definitely a string
+                          .join('')
+                        : 'U'}
                     </AvatarFallback>
 
                   </Avatar>
