@@ -256,7 +256,7 @@ export function Dashboard({ onStartBooking, onTrackOrder, currentOrderId }: Dash
                       dropoff,
                       viaLocations
                     });
-                    navigate("/services");
+                    navigate("/service");
                   }}
                 >
                   <motion.div
