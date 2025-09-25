@@ -13,9 +13,11 @@ import { InputOTP, InputOTPGroup, InputOTPSlot } from './ui/input-otp';
 import { Label } from './ui/label';
 import { Separator } from './ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
+
+// Interface fix: onComplete expects 2 parameters now
 interface LoginSignupProps {
   onBack: () => void;
-  onComplete: () => void;
+  onComplete: (token: string, userData: { userId: string; mobileNumber: string }) => void;
 }
 
 type AuthStep = 'input' | 'otp-sent' | 'otp-verified' | 'google-auth';
@@ -42,60 +44,40 @@ export function LoginSignup({ onBack, onComplete }: LoginSignupProps) {
   }, [countdown]);
 
   const validatePhoneNumber = (number: string): boolean => {
-    // Remove any non-digit characters
     const cleanedNumber = number.replace(/\D/g, '');
-
-    // Check if the number has exactly 10 digits
     if (cleanedNumber.length !== 10) {
       toast.error("Please enter a valid 10-digit phone number");
       return false;
     }
-
-    // Check if the number contains only digits
     if (!/^\d+$/.test(cleanedNumber)) {
       toast.error("Phone number should contain only digits");
       return false;
     }
-
     return true;
   };
-
 
   const handleSendOTP = async () => {
     if (!phoneNumber) {
       toast.error("Please enter a phone number");
       return;
     }
-
-    // Validate phone number
     if (!validatePhoneNumber(phoneNumber)) {
       return;
     }
-
     setIsLoading(true);
     setActiveAuthMethod("phone");
-    console.log(URL, "BASE_URL");
     try {
       const formattedNumber = `+91${phoneNumber.replace(/\D/g, "")}`;
-
-      const response = await axios.post(`${URL}send-otp`, {
-        number: formattedNumber,
-      });
-
-      // response.data already has parsed JSON
+      const response = await axios.post(`${URL}send-otp`, { number: formattedNumber });
       const data = response.data;
-
-      // Success
       setSessionId(data.sessionId);
       setIsLoading(false);
       setAuthStep("otp-sent");
-      setCountdown(30); // 30 second countdown for resend
+      setCountdown(30);
       toast.success("OTP sent successfully");
     } catch (error: any) {
       setIsLoading(false);
-      toast.error(
-        error.response?.data?.message || "Failed to send OTP. Please try again."
-      );
+      toast.error(error.response?.data?.message || "Failed to send OTP. Please try again.");
     }
   };
 
@@ -104,64 +86,42 @@ export function LoginSignup({ onBack, onComplete }: LoginSignupProps) {
       toast.error("Please enter a 6-digit OTP");
       return;
     }
-
     setIsLoading(true);
-
     try {
-      const response = await axios.post(`${URL}verify-otp`, {
-        sessionId: sessionId,
-        otp: otp,
-      });
-
+      const response = await axios.post(`${URL}verify-otp`, { sessionId, otp });
       const data = response.data;
-
       if (data.success) {
         setIsLoading(false);
         setAuthStep("otp-verified");
-
-        // Use the context login method instead of direct localStorage
         login(data.data.token, {
           userId: data.data.user_id,
           mobileNumber: data.data.mobile_number,
         });
-
         setTimeout(() => {
           onComplete(data.data.token, {
             userId: data.data.user_id,
             mobileNumber: data.data.mobile_number,
           });
         }, 1000);
-
         toast.success("OTP verified successfully");
-        navigate("dashboard/home")
+        navigate("dashboard/home");
       } else {
         throw new Error(data.message || "Invalid OTP");
       }
     } catch (error: any) {
       setIsLoading(false);
-      toast.error(
-        error.response?.data?.message || error.message || "Failed to verify OTP. Please try again."
-      );
+      toast.error(error.response?.data?.message || error.message || "Failed to verify OTP. Please try again.");
     }
   };
+
   const handleResendOTP = async () => {
     if (countdown > 0) return;
-
     setIsLoading(true);
-
     try {
-      // Format the phone number with country code
       const formattedNumber = `+91${phoneNumber.replace(/\D/g, "")}`;
-
-      // Resend OTP request
-      const response = await axios.post(`${URL}resend-otp`, {
-        number: formattedNumber,
-      });
-
+      const response = await axios.post(`${URL}resend-otp`, { number: formattedNumber });
       const data = response.data;
-
       if (response.status === 200) {
-        // Update session ID
         setSessionId(data.sessionId);
         setIsLoading(false);
         setCountdown(30);
@@ -172,31 +132,22 @@ export function LoginSignup({ onBack, onComplete }: LoginSignupProps) {
       }
     } catch (error: any) {
       setIsLoading(false);
-
-      // ✅ Always show API message if available
-      const message =
-        error.response?.data?.message ||
-        error.message ||
-        "Failed to resend OTP. Please try again.";
-
+      const message = error.response?.data?.message || error.message || "Failed to resend OTP. Please try again.";
       toast.error(message);
     }
   };
-
 
   const handleEmailAuth = async () => {
     if (!email || !password) {
       toast.error("Please enter both email and password");
       return;
     }
-
     setIsLoading(true);
     setActiveAuthMethod('email');
-
-    // Simulate email auth (you would replace this with your actual API call)
     setTimeout(() => {
       setIsLoading(false);
-      onComplete();
+      // Adapt onComplete usage here (no args currently)
+      onComplete('', { userId: '', mobileNumber: '' }); // or adjust as needed
     }, 2000);
   };
 
@@ -204,11 +155,9 @@ export function LoginSignup({ onBack, onComplete }: LoginSignupProps) {
     setIsLoading(true);
     setActiveAuthMethod('google');
     setAuthStep('google-auth');
-
-    // Simulate Google auth (you would replace this with your actual API call)
     setTimeout(() => {
       setIsLoading(false);
-      onComplete();
+      onComplete('', { userId: '', mobileNumber: '' }); // or adjust as needed
     }, 2500);
   };
 
@@ -220,14 +169,9 @@ export function LoginSignup({ onBack, onComplete }: LoginSignupProps) {
     setSessionId('');
   };
 
-  // Format phone number as user types
   const handlePhoneNumberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const input = e.target.value;
-
-    // Remove any non-digit characters
     const cleaned = input.replace(/\D/g, '');
-
-    // Limit to 10 digits
     if (cleaned.length <= 10) {
       setPhoneNumber(cleaned);
     }

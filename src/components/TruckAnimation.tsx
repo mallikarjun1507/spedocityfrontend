@@ -1,6 +1,5 @@
-import { motion } from 'motion/react';
 import { Truck, Package, Bike, Mail } from 'lucide-react';
-
+import { motion, Variants as MotionVariants, easeInOut, easeOut } from "framer-motion";
 interface TruckAnimationProps {
   serviceType: 'packers' | 'mini-truck' | 'bike' | 'courier';
   isHovered?: boolean;
@@ -38,7 +37,7 @@ export function TruckAnimation({ serviceType, isHovered = false, size = 'md' }: 
           duration: isHovered ? 2 : 0.5,
           repeat: isHovered ? Infinity : 0,
           repeatType: "loop" as const,
-          ease: "easeInOut"
+          ease: easeInOut
         },
         opacity: {
           duration: 0.3
@@ -56,7 +55,7 @@ export function TruckAnimation({ serviceType, isHovered = false, size = 'md' }: 
         duration: isHovered ? 0.6 : 0.3,
         repeat: isHovered ? Infinity : 0,
         repeatType: "loop" as const,
-        ease: "easeInOut"
+        ease: easeInOut
       }
     }
   };
@@ -72,7 +71,7 @@ export function TruckAnimation({ serviceType, isHovered = false, size = 'md' }: 
         duration: isHovered ? 1.5 : 0.3,
         repeat: isHovered ? Infinity : 0,
         repeatType: "loop" as const,
-        ease: "easeOut"
+        ease: easeOut
       }
     }
   };
