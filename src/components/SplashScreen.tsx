@@ -34,9 +34,9 @@ export function SplashScreen({ onComplete }: SplashScreenProps) {
            {/* ✅ Company Logo (logo.jpg in public folder) */}
           <div className="w-24 h-24 mx-auto mb-6 bg-white rounded-full flex items-center justify-center overflow-hidden">
             <img
-              src="/logo.jpg" // <-- use logo.jpg here
+              src="/logo.png" // <-- use logo.jpg here
               alt="Spedocity Logo"
-              className="w-16 h-16 object-contain"
+              className="w-20 h-20 object-contain"
             />
           </div>
           <h1 className="text-4xl mb-2">Spedocity</h1>

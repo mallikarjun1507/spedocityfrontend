@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { ChevronLeft, ChevronRight, Zap, DollarSign, Shield } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Zap, IndianRupee, Shield } from 'lucide-react';
 import { Button } from './ui/button';
 
 interface IntroSlidesProps {
@@ -15,7 +15,7 @@ const slides = [
     gradient: "from-orange-500 to-red-500"
   },
   {
-    icon: DollarSign,
+    icon: IndianRupee,
     title: "Affordable delivery",
     description: "Competitive rates that won't break the bank. Quality service at unbeatable prices.",
     gradient: "from-green-500 to-emerald-500"

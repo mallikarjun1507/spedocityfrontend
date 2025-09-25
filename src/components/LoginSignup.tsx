@@ -265,11 +265,11 @@ export function LoginSignup({ onBack, onComplete }: LoginSignupProps) {
             >
               {/* Logo */}
               <div className="text-center mb-8">
-                <div className="w-16 h-16 mx-auto mb-4 bg-blue-600 rounded-full flex items-center justify-center overflow-hidden">
+                <div className="w-20 h-20 mx-auto mb-4 bg-blue-600 rounded-full flex items-center justify-center overflow-hidden">
                   <img
-                    src="/logo.jpg"   
+                    src="/logo.png"   
                     alt="Spedocity Logo"
-                    className="w-10 h-10 object-contain"
+                    className="w-16 h-16 object-contain"
                   />
                 </div>
 
