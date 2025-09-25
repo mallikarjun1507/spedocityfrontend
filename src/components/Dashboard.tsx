@@ -12,7 +12,7 @@ import {
   X
 } from 'lucide-react';
 import { motion } from 'motion/react';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from "react-router-dom";
 import { LocationPicker } from './LocationPicker';
 import { TruckAnimation } from './TruckAnimation';
@@ -20,6 +20,7 @@ import { Badge } from './ui/badge';
 import { Button } from './ui/button';
 import { Card, CardContent } from './ui/card';
 import { Input } from './ui/input';
+
 const serviceCards = [
   {
     id: 'packers',
@@ -92,30 +93,26 @@ export function Dashboard({ onStartBooking, onTrackOrder, currentOrderId }: Dash
   const [locationPickerType, setLocationPickerType] = useState<'pickup' | 'dropoff' | 'via'>('pickup');
   const [hoveredService, setHoveredService] = useState<string | null>(null);
   const [orderOTP, setOrderOTP] = useState<string>('');
+  const [activeOrders, setActiveOrders] = useState<any[]>([]);
   const navigate = useNavigate();
 
   // Generate pickup OTP for active orders (stable across renders)
-  const generatePickupOTP = () => {
-    if (!orderOTP && currentOrderId) {
+  useEffect(() => {
+    if (currentOrderId) {
       const newOTP = Math.floor(100000 + Math.random() * 900000).toString();
       setOrderOTP(newOTP);
-      return newOTP;
-    }
-    return orderOTP;
-  };
 
-  // Mock active orders
-  const activeOrders = currentOrderId ? [
-    {
-      id: currentOrderId,
-      status: 'in-transit',
-      pickup: 'Whitefield, Bangalore',
-      dropoff: 'Electronic City, Bangalore',
-      service: 'Mini Truck',
-      eta: '25 mins',
-      pickupOTP: generatePickupOTP()
+      setActiveOrders([{
+        id: currentOrderId,
+        status: 'in-transit',
+        pickup: 'Whitefield, Bangalore',
+        dropoff: 'Electronic City, Bangalore',
+        service: 'Mini Truck',
+        eta: '25 mins',
+        pickupOTP: newOTP
+      }]);
     }
-  ] : [];
+  }, [currentOrderId]);
 
   const handleLocationPicker = (type: 'pickup' | 'dropoff' | 'via') => {
     setLocationPickerType(type);
@@ -284,7 +281,7 @@ export function Dashboard({ onStartBooking, onTrackOrder, currentOrderId }: Dash
       </div>
 
       {/* Pickup OTP Display */}
-      {currentOrderId && activeOrders.length > 0 && (
+      {activeOrders.length > 0 && (
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
