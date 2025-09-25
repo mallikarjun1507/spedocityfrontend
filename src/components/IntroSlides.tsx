@@ -1,6 +1,6 @@
+import { ChevronLeft, ChevronRight, IndianRupee, Shield, Zap } from 'lucide-react';
+import { AnimatePresence, motion } from 'motion/react';
 import { useState } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
-import { ChevronLeft, ChevronRight, Zap, IndianRupee, Shield } from 'lucide-react';
 import { Button } from './ui/button';
 
 interface IntroSlidesProps {
@@ -87,11 +87,11 @@ export function IntroSlides({ onComplete }: IntroSlidesProps) {
                 return <IconComponent className="w-16 h-16 text-white" />;
               })()}
             </div>
-            
+
             <h2 className="text-3xl mb-4 text-gray-900">
               {slides[currentSlide].title}
             </h2>
-            
+
             <p className="text-lg text-gray-600 max-w-sm leading-relaxed">
               {slides[currentSlide].description}
             </p>
@@ -107,9 +107,8 @@ export function IntroSlides({ onComplete }: IntroSlidesProps) {
             <button
               key={index}
               onClick={() => goToSlide(index)}
-              className={`w-3 h-3 rounded-full transition-colors ${
-                index === currentSlide ? 'bg-blue-600' : 'bg-gray-300'
-              }`}
+              className={`w-3 h-3 rounded-full transition-colors ${index === currentSlide ? 'bg-blue-600' : 'bg-gray-300'
+                }`}
             />
           ))}
         </div>
@@ -119,7 +118,7 @@ export function IntroSlides({ onComplete }: IntroSlidesProps) {
           <Button
             variant="ghost"
             onClick={prevSlide}
-            className="flex items-center gap-2"
+            className="flex items-center gap-2 cursor-pointer"
             disabled={currentSlide === 0}
           >
             <ChevronLeft className="w-4 h-4" />
@@ -129,14 +128,14 @@ export function IntroSlides({ onComplete }: IntroSlidesProps) {
           {currentSlide === slides.length - 1 ? (
             <Button
               onClick={onComplete}
-              className="bg-blue-600 hover:bg-blue-700 text-white px-8"
+              className="bg-blue-600 hover:bg-blue-700 text-white px-8 cursor-pointer"
             >
               Get Started
             </Button>
           ) : (
             <Button
               onClick={nextSlide}
-              className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white"
+              className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white cursor-pointer"
             >
               Next
               <ChevronRight className="w-4 h-4" />
