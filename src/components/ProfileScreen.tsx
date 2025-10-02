@@ -1,8 +1,7 @@
 import {
-  Autocomplete,
   GoogleMap,
   Marker,
-  useJsApiLoader,
+  useJsApiLoader
 } from "@react-google-maps/api";
 import axios from 'axios';
 import {
@@ -28,7 +27,7 @@ import {
   X
 } from 'lucide-react';
 import { motion } from 'motion/react';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { useAuth } from '../contexts/AuthContext';
@@ -49,7 +48,7 @@ const menuItems = [
     title: 'Edit Profile',
     subtitle: 'Update your personal information',
     color: 'bg-blue-100 text-blue-600'
-      
+
   },
   {
     id: 'addresses',
@@ -96,6 +95,9 @@ const menuItems = [
 export function ProfileScreen() {
   const [activeScreen, setActiveScreen] = useState<string | null>(null);
 
+  // ✅ keep outside to avoid reloading warning
+  const libraries: ("places")[] = ["places"];
+
   // ✅ Google Map container style
   const mapContainerStyle = {
     width: "100%",
@@ -129,34 +131,45 @@ export function ProfileScreen() {
     const [showMap, setShowMap] = useState(false);
     const [editingAddress, setEditingAddress] = useState<Address | null>(null);
     const [selectedLocation, setSelectedLocation] = useState<any>(null);
-    const [autocomplete, setAutocomplete] = useState<any>(null);
     const [map, setMap] = useState<any>(null);
+
+    // ✅ Ref for search input
+    const inputRef = useRef<HTMLInputElement>(null);
 
     // -------------------- Google Maps Loader --------------------
     const { isLoaded } = useJsApiLoader({
-      googleMapsApiKey: "YOUR_GOOGLE_MAPS_API_KEY", // 🔑 Replace with your key
-      libraries: ["places"],
+      googleMapsApiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY as string,
+      libraries,
+
     });
 
-    // -------------------- Handlers --------------------
+    console.log("API Key:", import.meta.env.VITE_GOOGLE_MAPS_API_KEY);
 
-    // When user selects a place from search box
-    const onPlaceChanged = () => {
-      if (autocomplete) {
-        const place = autocomplete.getPlace();
-        if (place.geometry) {
-          const location = place.geometry.location;
-          setSelectedLocation({
-            lat: location.lat(),
-            lng: location.lng(),
-            address: place.formatted_address,
-          });
-          map?.panTo(location);
-        }
+    // -------------------- Init Place Autocomplete --------------------
+    useEffect(() => {
+      if (isLoaded && inputRef.current) {
+        const autocomplete = new google.maps.places.Autocomplete(inputRef.current!, {
+          componentRestrictions: { country: "in" },
+        });
+
+
+        autocomplete.addListener("place_changed", () => {
+          const place = autocomplete.getPlace();
+          if (place.geometry && place.geometry.location) {
+            const location = place.geometry.location;
+            setSelectedLocation({
+              lat: location.lat(),
+              lng: location.lng(),
+              address: place.formatted_address,
+            });
+            map?.panTo(location);
+          }
+        });
+
       }
-    };
+    }, [isLoaded, map]);
 
-    // Save or update address
+    // -------------------- Handlers --------------------
     const handleSaveAddress = () => {
       if (!selectedLocation) {
         toast.error("Please select a location");
@@ -168,14 +181,21 @@ export function ProfileScreen() {
         setAddresses((prev) =>
           prev.map((a) =>
             a.id === editingAddress.id
-              ? { ...a, address: selectedLocation.address, lat: selectedLocation.lat, lng: selectedLocation.lng }
+              ? {
+                ...a,
+                address: selectedLocation.address,
+                lat: selectedLocation.lat,
+                lng: selectedLocation.lng,
+              }
               : a
           )
         );
         toast.success("Address updated");
       } else {
         // ➕ Add new
-        const newId = addresses.length ? Math.max(...addresses.map((a) => a.id)) + 1 : 1;
+        const newId = addresses.length
+          ? Math.max(...addresses.map((a) => a.id)) + 1
+          : 1;
         setAddresses([
           ...addresses,
           {
@@ -195,20 +215,17 @@ export function ProfileScreen() {
       setSelectedLocation(null);
     };
 
-    // Delete address
     const handleDelete = (id: number) => {
       setAddresses(addresses.filter((a) => a.id !== id));
       toast.success("Address deleted");
     };
 
-    // Open map modal for new address
     const handleAddNew = () => {
       setEditingAddress(null);
       setSelectedLocation(null);
       setShowMap(true);
     };
 
-    // Open map modal for editing address
     const handleEdit = (addr: Address) => {
       setEditingAddress(addr);
       setSelectedLocation(addr); // Prefill map with existing address location
@@ -220,7 +237,7 @@ export function ProfileScreen() {
       <div className="p-4 sm:p-6 max-w-5xl mx-auto">
         {/* Back Button */}
         <div className="mb-4">
-          <Button variant="ghost"  className="cursor-pointer" onClick={onBack}>
+          <Button variant="ghost" className="cursor-pointer" onClick={onBack}>
             <ArrowLeft className="w-4 h-4 mr-2" /> Back
           </Button>
         </div>
@@ -228,7 +245,10 @@ export function ProfileScreen() {
         {/* Header + Add New Address */}
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-lg font-semibold">Saved Addresses</h2>
-          <Button onClick={handleAddNew} className="flex items-center gap-2 cursor-pointer">
+          <Button
+            onClick={handleAddNew}
+            className="flex items-center gap-2 cursor-pointer"
+          >
             <Plus className="w-4 h-4 " /> Add New Address
           </Button>
         </div>
@@ -246,10 +266,20 @@ export function ProfileScreen() {
               </div>
 
               <div className="flex justify-end gap-2 mt-3">
-                <Button variant="outline" size="icon" className="h-8 w-8 cursor-pointer  bg-blue-600 text-white hover:bg-blue-700" onClick={() => handleEdit(addr)}>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="h-8 w-8 cursor-pointer bg-blue-600 text-white hover:bg-blue-700"
+                  onClick={() => handleEdit(addr)}
+                >
                   <Edit3 className="w-4 h-4" />
                 </Button>
-                <Button variant="destructive" size="icon" className="h-8 w-8 cursor-pointer bg-blue-600 text-white hover:bg-blue-700" onClick={() => handleDelete(addr.id)}>
+                <Button
+                  variant="destructive"
+                  size="icon"
+                  className="h-8 w-8 cursor-pointer bg-blue-600 text-white hover:bg-blue-700"
+                  onClick={() => handleDelete(addr.id)}
+                >
                   <Trash2 className="w-4 h-4" />
                 </Button>
               </div>
@@ -267,15 +297,14 @@ export function ProfileScreen() {
                   {editingAddress ? "Edit Address" : "Add New Address"}
                 </h3>
 
-                {/* Search Box */}
-                <Autocomplete onLoad={setAutocomplete} onPlaceChanged={onPlaceChanged}>
-                  <input
-                    type="text"
-                    placeholder="Search for a building, street, or area..."
-                    defaultValue={editingAddress?.address || ""}
-                    className="w-full border px-4 py-2 rounded-lg mb-3 focus:ring focus:ring-blue-200"
-                  />
-                </Autocomplete>
+                {/* Search Box (✅ replaced Autocomplete) */}
+                <input
+                  ref={inputRef}
+                  type="text"
+                  placeholder="Search for a building, street, or area..."
+                  defaultValue={editingAddress?.address || ""}
+                  className="w-full border px-4 py-2 rounded-lg mb-3 focus:ring focus:ring-blue-200"
+                />
 
                 {/* Google Map */}
                 <GoogleMap
@@ -291,12 +320,23 @@ export function ProfileScreen() {
                     })
                   }
                 >
-                  {selectedLocation && <Marker position={{ lat: selectedLocation.lat, lng: selectedLocation.lng }} />}
+                  {selectedLocation && (
+                    <Marker
+                      position={{
+                        lat: selectedLocation.lat,
+                        lng: selectedLocation.lng,
+                      }}
+                    />
+                  )}
                 </GoogleMap>
 
                 {/* Actions */}
                 <div className="flex justify-end gap-3 mt-4">
-                  <Button variant="outline" className="cursor-pointer" onClick={() => setShowMap(false)}>
+                  <Button
+                    variant="outline"
+                    className="cursor-pointer"
+                    onClick={() => setShowMap(false)}
+                  >
                     Cancel
                   </Button>
                   <Button className="cursor-pointer" onClick={handleSaveAddress}>
