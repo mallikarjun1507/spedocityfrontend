@@ -129,14 +129,14 @@ export function IntroSlides({ onComplete }: IntroSlidesProps) {
           {currentSlide === slides.length - 1 ? (
             <Button
               onClick={onComplete}
-              className="bg-blue-600 hover:bg-blue-700 text-white px-8"
+              className="bg-blue-600 hover:bg-blue-700 text-white px-8 cursor-pointer"
             >
               Get Started
             </Button>
           ) : (
             <Button
               onClick={nextSlide}
-              className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white"
+              className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white cursor-pointer"
             >
               Next
               <ChevronRight className="w-4 h-4" />
