@@ -11,7 +11,7 @@ interface UserData {
   created_at?: string;
   updated_at?: string;
 }
-
+//user data api check this for the update api
 interface User {
   userId: string;
   mobileNumber: string;
