@@ -224,7 +224,7 @@ export function OrdersScreen({ onTrackOrder }: OrdersScreenProps = {}) {
                       {order.canTrack ? (
                         <Button
                           size="sm"
-                          className="flex-1 h-8 text-xs bg-blue-600 hover:bg-blue-700"
+                          className="flex-1 h-8 text-xs bg-blue-600 hover:bg-blue-700 cursor-pointer"
                           onClick={() => handleTrackOrder(order.id)}
                         >
                           <MapPin className="w-3 h-3 mr-1" />
@@ -234,7 +234,7 @@ export function OrdersScreen({ onTrackOrder }: OrdersScreenProps = {}) {
                         <Button
                           variant="outline"
                           size="sm"
-                          className="flex-1 h-8 text-xs"
+                          className="flex-1 h-8 text-xs cursor-pointer"
                           onClick={() => handleViewDetails(order.id)}
                         >
                           <Eye className="w-3 h-3 mr-1" />
@@ -246,7 +246,7 @@ export function OrdersScreen({ onTrackOrder }: OrdersScreenProps = {}) {
                         <Button
                           variant="outline"
                           size="sm"
-                          className="flex-1 h-8 text-xs"
+                          className="flex-1 h-8 text-xs cursor-pointer"
                           onClick={() => handleDownloadInvoice(order.id)}
                         >
                           <Download className="w-3 h-3 mr-1" />
@@ -258,7 +258,7 @@ export function OrdersScreen({ onTrackOrder }: OrdersScreenProps = {}) {
                         <Button
                           variant="outline"
                           size="sm"
-                          className="flex-1 h-8 text-xs text-blue-600 border-blue-200 hover:bg-blue-50"
+                          className="flex-1 h-8 text-xs text-blue-600 border-blue-200 hover:bg-blue-50 cursor-pointer"
                           onClick={() => handleRebook(order)}
                         >
                           <RotateCcw className="w-3 h-3 mr-1" />

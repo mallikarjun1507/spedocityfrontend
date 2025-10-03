@@ -185,11 +185,11 @@ export function LoginSignup({ onBack, onComplete }: LoginSignupProps) {
   };
 
   return (
-    <div className="size-full flex flex-col bg-white">
+    <div className="size-full flex flex-col bg-white ">
       {/* Header */}
-      <div className="flex items-center justify-between p-6 border-b">
-        <Button variant="ghost" size="sm" onClick={authStep === 'input' ? onBack : handleBackToInput}>
-          <ArrowLeft className="w-4 h-4 mr-2" />
+      <div className="flex items-center justify-between p-6 border-b ">
+        <Button variant="ghost" size="sm" className="cursor-pointer" onClick={authStep === 'input' ? onBack : handleBackToInput}>
+          <ArrowLeft className="w-4 h-4 mr-2 " />
           Back
         </Button>
         <h1 className="text-xl">
@@ -227,13 +227,13 @@ export function LoginSignup({ onBack, onComplete }: LoginSignupProps) {
                 <p className="text-gray-600">Sign in to start your delivery journey</p>
               </div>
 
-              <Tabs defaultValue="phone" className="w-full">
+              <Tabs defaultValue="phone" className="w-full ">
                 <TabsList className="grid w-full grid-cols-2">
-                  <TabsTrigger value="phone" className="flex items-center gap-2">
+                  <TabsTrigger value="phone" className="flex items-center gap-2 cursor-pointer">
                     <Phone className="w-4 h-4" />
                     Phone
                   </TabsTrigger>
-                  <TabsTrigger value="email" className="flex items-center gap-2">
+                  <TabsTrigger value="email" className="flex items-center gap-2 cursor-pointer">
                     <Mail className="w-4 h-4" />
                     Email
                   </TabsTrigger>
@@ -323,8 +323,7 @@ export function LoginSignup({ onBack, onComplete }: LoginSignupProps) {
                 variant="outline"
                 onClick={handleGoogleAuth}
                 disabled={isLoading}
-                
-                className="w-full flex  items-center gap-3 border-gray-300"
+                className="w-full flex items-center gap-3 border-gray-300 cursor-pointer"
               >
                 {isLoading && activeAuthMethod === 'google' ? (
                   <>

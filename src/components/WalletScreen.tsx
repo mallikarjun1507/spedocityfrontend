@@ -104,11 +104,11 @@ export function WalletScreen() {
                 </div>
               )}
               <div className="flex gap-3">
-                <Button variant="secondary" size="sm" className="flex-1 bg-white/20 text-white border-0 hover:bg-white/30">
+                <Button variant="secondary" size="sm" className="flex-1 bg-white/20 text-white border-0 hover:bg-white/30 cursor-pointer">
                   <Plus className="w-4 h-4 mr-2" />
                   Add Money
                 </Button>
-                <Button variant="secondary" size="sm" className="flex-1 bg-white/20 text-white border-0 hover:bg-white/30">
+                <Button variant="secondary" size="sm" className="flex-1 bg-white/20 text-white border-0 hover:bg-white/30 cursor-pointer">
                   <ArrowUpRight className="w-4 h-4 mr-2" />
                   Send Money
                 </Button>
