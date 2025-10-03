@@ -388,11 +388,9 @@ export function ProfileScreen() {
 
 
 
-  {
-    userData && (
-      <EditProfileScreen onBack={() => setActiveScreen(null)} userData={userData} />
-    )
-  }
+  if (activeScreen === 'profile') {
+  return <EditProfileScreen onBack={() => setActiveScreen(null)} userData={userData} />;
+}
 
   if (activeScreen === 'wallet') {
     return <WalletPaymentsScreen onBack={() => setActiveScreen(null)} walletBalance={walletBalance} />;
@@ -614,62 +612,7 @@ function EditProfileScreen({ onBack, userData }: { onBack: () => void; userData:
     }
     setIsEditing(false);
   };
-  useEffect(() => {
-    const userInfo = async () => {
-      const res = await axios.get(`${URL}get-user-info`, {
-        headers: {
-          'Authorization': userData?.authToken
-        },
-        params: {
-          userId: userData?.userId
-        }
-      })
-      if (res.status === 200) {
-        const isoDate = res.data.data.date_of_birth;
-        const formattedDate = isoDate ? isoDate.split('T')[0] : '';
-        setFormData(prev => ({
-          ...prev,
-          name: res.data.data.full_name,
-          email: res.data.data.email,
-          dateOfBirth: formattedDate,
-          gender: res.data.data.gender
-        }))
-        const userInfo = {
-          'name': res.data.data.full_name,
-          'email': res.data.data.email,
-          'dateOfBirth': formattedDate,
-        }
-        const updateUserInfo = () => {
-          try {
-            // 1. Get the existing user data from localStorage
-            const existingUserStr = localStorage.getItem('user');
-            if (existingUserStr) {
-              // 2. Parse the existing user data
-              const existingUser = JSON.parse(existingUserStr);
 
-              // 3. Update only the specific fields you want
-              const updatedUser = {
-                ...existingUser, // Keep all existing properties
-                ...userInfo,     // Override with new userInfo
-              };
-
-              localStorage.setItem('user', JSON.stringify(updatedUser));
-
-              console.log('User info updated successfully');
-            } else {
-              console.log('No user data found in localStorage');
-            }
-          } catch (error) {
-            console.error('Error updating user info:', error);
-          }
-        };
-
-        updateUserInfo();
-
-      }
-    };
-    userInfo();
-  }, [])
   const handleCancel = () => {
     setIsEditing(false);
   };

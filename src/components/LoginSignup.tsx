@@ -15,9 +15,14 @@ import { Separator } from './ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
 
 // Interface fix: onComplete expects 2 parameters now
+// Interface fix: onComplete expects proper parameters
 interface LoginSignupProps {
   onBack: () => void;
-  onComplete: (token: string, userData: { userId: string; mobileNumber: string }) => void;
+  onComplete: (token: string, userData: { 
+    userId: string; 
+    mobileNumber: string; 
+    userData: Object; 
+  }) => void;
 }
 
 type AuthStep = 'input' | 'otp-sent' | 'otp-verified' | 'google-auth';
@@ -96,11 +101,13 @@ export function LoginSignup({ onBack, onComplete }: LoginSignupProps) {
         login(data.data.token, {
           userId: data.data.user_id,
           mobileNumber: data.data.mobile_number,
+          userDataData : data.data.userData,
         });
         setTimeout(() => {
           onComplete(data.data.token, {
             userId: data.data.user_id,
             mobileNumber: data.data.mobile_number,
+            userDataData : data.data.userData,
           });
         }, 1000);
         toast.success("OTP verified successfully");
@@ -147,7 +154,7 @@ export function LoginSignup({ onBack, onComplete }: LoginSignupProps) {
     setTimeout(() => {
       setIsLoading(false);
       // Adapt onComplete usage here (no args currently)
-      onComplete('', { userId: '', mobileNumber: '' }); // or adjust as needed
+      onComplete('', { userId: '', mobileNumber: '', userDataData : {} }, ); // or adjust as needed
     }, 2000);
   };
 
@@ -157,7 +164,7 @@ export function LoginSignup({ onBack, onComplete }: LoginSignupProps) {
     setAuthStep('google-auth');
     setTimeout(() => {
       setIsLoading(false);
-      onComplete('', { userId: '', mobileNumber: '' }); // or adjust as needed
+      onComplete('', { userId: '', mobileNumber: '', userDataData: {} }); // or adjust as needed
     }, 2500);
   };
 
@@ -305,14 +312,14 @@ export function LoginSignup({ onBack, onComplete }: LoginSignupProps) {
               </Tabs>
 
               <div className="relative">
-                <Separator />
+                {/* <Separator />
                 <div className="absolute inset-0 flex items-center justify-center">
                   <span className="bg-white px-2 text-sm text-gray-500">or</span>
-                </div>
+                </div> */}
               </div>
 
               {/* Google Sign In */}
-              <Button
+              {/* <Button
                 variant="outline"
                 onClick={handleGoogleAuth}
                 disabled={isLoading}
@@ -346,9 +353,9 @@ export function LoginSignup({ onBack, onComplete }: LoginSignupProps) {
                     Continue with Google
                   </>
                 )}
-              </Button>
+              </Button> */}
 
-              <p className="text-center text-sm text-gray-500 mt-6">
+              <p className="text-center text-sm text-gray-500  mt-5">
                 By continuing, you agree to our{' '}
                 <a href="#" className="text-blue-600 hover:underline">
                   Terms of Service
