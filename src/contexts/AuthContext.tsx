@@ -1,4 +1,5 @@
 // contexts/AuthContext.tsx
+
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 
 interface UserData {
@@ -11,7 +12,7 @@ interface UserData {
   created_at?: string;
   updated_at?: string;
 }
-//user data api check this for the update api
+
 interface User {
   userId: string;
   mobileNumber: string;
@@ -26,7 +27,7 @@ interface AuthContextType {
   token: string | null;
   isAuthenticated: boolean;
   isLoading: boolean;
-  login: (token: string, userData: User, userDataData?: UserData) => void;
+  login: (token: string, user: User) => void;
   logout: () => void;
 }
 
@@ -38,7 +39,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Check for existing auth data on app load
     const storedUserStr = localStorage.getItem('user');
     if (storedUserStr) {
       try {
@@ -61,29 +61,22 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     setIsLoading(false);
   }, []);
 
-  const login = (newToken: string, userData: User, userDataData?: UserData) => {
-    console.log(userDataData,"userDataDatauserDataData")
+  const login = (newToken: string, userData: User) => {
+    console.log('Logging in user:', userData);
     const userToStore = {
       authToken: newToken,
       userId: userData.userId,
       mobileNumber: userData.mobileNumber,
-      email: userDataData?.email || userData.email,
-      name: userDataData?.full_name || userData.name,
-      dateOfBirth: userDataData?.date_of_birth || userData.dateOfBirth,
-      userData: userDataData,
+      email: userData.email || userData.userData?.email,
+      name: userData.name || userData.userData?.full_name,
+      dateOfBirth: userData.dateOfBirth || userData.userData?.date_of_birth,
+      userData: userData.userData,
     };
-    
+
     localStorage.setItem('user', JSON.stringify(userToStore));
-    
+
     setToken(newToken);
-    setUser({
-      userId: userData.userId,
-      mobileNumber: userData.mobileNumber,
-      email: userDataData?.email,
-      name: userDataData?.full_name,
-      dateOfBirth: userDataData?.date_of_birth,
-      userData: userDataData,
-    });
+    setUser(userData);
   };
 
   const logout = () => {
@@ -101,17 +94,11 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     logout,
   };
 
-  return (
-    <AuthContext.Provider value={value}>
-      {children}
-    </AuthContext.Provider>
-  );
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
 
 export const useAuth = () => {
   const context = useContext(AuthContext);
-  if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider');
-  }
+  if (!context) throw new Error('useAuth must be used within an AuthProvider');
   return context;
 };
