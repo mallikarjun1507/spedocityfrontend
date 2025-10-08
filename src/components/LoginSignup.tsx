@@ -87,39 +87,48 @@ export function LoginSignup({ onBack, onComplete }: LoginSignupProps) {
   };
 
   const handleVerifyOTP = async () => {
-    if (otp.length !== 6) {
-      toast.error("Please enter a 6-digit OTP");
-      return;
-    }
-    setIsLoading(true);
-    try {
-      const response = await axios.post(`${URL}verify-otp`, { sessionId, otp });
-      const data = response.data;
-      if (data.success) {
-        setIsLoading(false);
-        setAuthStep("otp-verified");
-        login(data.data.token, {
-          userId: data.data.user_id,
-          mobileNumber: data.data.mobile_number,
-          userDataData : data.data.userData,
-        });
-        setTimeout(() => {
-          onComplete(data.data.token, {
-            userId: data.data.user_id,
-            mobileNumber: data.data.mobile_number,
-            userDataData : data.data.userData,
-          });
-        }, 1000);
-        toast.success("OTP verified successfully");
-        navigate("dashboard/home");
-      } else {
-        throw new Error(data.message || "Invalid OTP");
-      }
-    } catch (error: any) {
+  if (otp.length !== 6) {
+    toast.error("Please enter a 6-digit OTP");
+    return;
+  }
+
+  setIsLoading(true);
+  try {
+    const response = await axios.post(`${URL}verify-otp`, { sessionId, otp });
+    const data = response.data;
+
+    if (data.success) {
+      const { token, user_id, mobile_number, userData } = data.data;
+
       setIsLoading(false);
-      toast.error(error.response?.data?.message || error.message || "Failed to verify OTP. Please try again.");
+      setAuthStep("otp-verified");
+      console.log(data.data, "data.data");
+      // ✅ Correct structure
+      login(token, {
+        userId: user_id,
+        mobileNumber: mobile_number,
+        userData,
+      });
+
+      setTimeout(() => {
+        onComplete(token, {
+          userId: user_id,
+          mobileNumber: mobile_number,
+          userData,
+        });
+      }, 1000);
+
+      toast.success("OTP verified successfully");
+      navigate("dashboard/home");
+    } else {
+      throw new Error(data.message || "Invalid OTP");
     }
-  };
+  } catch (error: any) {
+    setIsLoading(false);
+    toast.error(error.response?.data?.message || error.message || "Failed to verify OTP. Please try again.");
+  }
+};
+
 
   const handleResendOTP = async () => {
     if (countdown > 0) return;
@@ -154,7 +163,7 @@ export function LoginSignup({ onBack, onComplete }: LoginSignupProps) {
     setTimeout(() => {
       setIsLoading(false);
       // Adapt onComplete usage here (no args currently)
-      onComplete('', { userId: '', mobileNumber: '', userDataData : {} }, ); // or adjust as needed
+      onComplete('', { userId: '', mobileNumber: '', userData: {} }); // or adjust as needed
     }, 2000);
   };
 
@@ -164,7 +173,7 @@ export function LoginSignup({ onBack, onComplete }: LoginSignupProps) {
     setAuthStep('google-auth');
     setTimeout(() => {
       setIsLoading(false);
-      onComplete('', { userId: '', mobileNumber: '', userDataData: {} }); // or adjust as needed
+      onComplete('', { userId: '', mobileNumber: '', userData: {} }); // or adjust as needed
     }, 2500);
   };
 
