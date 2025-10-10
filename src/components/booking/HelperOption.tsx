@@ -1,9 +1,9 @@
-import { useState } from 'react';
+import { Minus, Plus, Users } from 'lucide-react';
 import { motion } from 'motion/react';
-import { ArrowLeft, Users, Plus, Minus } from 'lucide-react';
+import { useState } from 'react';
+import { Badge } from '../ui/badge';
 import { Button } from '../ui/button';
 import { Card, CardContent } from '../ui/card';
-import { Badge } from '../ui/badge';
 
 interface HelperOptionProps {
   onNext: (helpers: number) => void;
@@ -49,13 +49,8 @@ export function HelperOption({ onNext, onBack }: HelperOptionProps) {
     <div className="flex flex-col h-full bg-gray-50">
       {/* Header */}
       <div className="bg-white px-6 py-4 shadow-sm flex-shrink-0">
-        <div className="flex items-center justify-between mb-4">
-          <Button variant="ghost" size="sm" onClick={onBack}>
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Back
-          </Button>
-          <h1 className="text-lg">Helper Options</h1>
-          <div className="w-16" />
+        <div className="flex items-center justify-center mb-4">
+          <h1 className="text-lg font-medium text-gray-800">Helper Options</h1>
         </div>
       </div>
 
@@ -81,12 +76,11 @@ export function HelperOption({ onNext, onBack }: HelperOptionProps) {
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ duration: 0.3, delay: 0.1 * index }}
                 >
-                  <Card 
-                    className={`cursor-pointer transition-all ${
-                      selectedHelpers === option.count 
-                        ? 'border-blue-500 bg-blue-50 shadow-md' 
+                  <Card
+                    className={`cursor-pointer transition-all ${selectedHelpers === option.count
+                        ? 'border-blue-500 bg-blue-50 shadow-md'
                         : 'border-gray-200 hover:border-gray-300 hover:shadow-sm'
-                    }`}
+                      }`}
                     onClick={() => selectHelpers(option.count)}
                   >
                     <CardContent className="p-4">
@@ -101,7 +95,7 @@ export function HelperOption({ onNext, onBack }: HelperOptionProps) {
                             </div>
                           )}
                         </div>
-                        
+
                         <div className="flex-1">
                           <div className="flex items-center gap-2 mb-1">
                             <h3 className="text-base">{option.title}</h3>
@@ -113,7 +107,7 @@ export function HelperOption({ onNext, onBack }: HelperOptionProps) {
                           </div>
                           <p className="text-sm text-gray-600">{option.description}</p>
                         </div>
-                        
+
                         <div className="text-right">
                           {option.price > 0 ? (
                             <>
@@ -140,7 +134,7 @@ export function HelperOption({ onNext, onBack }: HelperOptionProps) {
                 <div className="text-center">
                   <h3 className="text-sm mb-2">Need more helpers?</h3>
                   <div className="flex items-center justify-center gap-3">
-                    <Button
+                    <Button className='cursor-pointer'
                       variant="outline"
                       size="sm"
                       onClick={() => setSelectedHelpers(Math.max(0, selectedHelpers - 1))}
@@ -148,7 +142,7 @@ export function HelperOption({ onNext, onBack }: HelperOptionProps) {
                       <Minus className="w-4 h-4" />
                     </Button>
                     <span className="w-12 text-center">{selectedHelpers}</span>
-                    <Button
+                    <Button className='cursor-pointer'
                       variant="outline"
                       size="sm"
                       onClick={() => setSelectedHelpers(Math.min(5, selectedHelpers + 1))}
@@ -219,8 +213,8 @@ export function HelperOption({ onNext, onBack }: HelperOptionProps) {
         <div className="flex items-center justify-between mb-3">
           <span className="text-sm text-gray-600">Selected:</span>
           <span className="text-sm">
-            {selectedHelpers === 0 
-              ? 'No helper' 
+            {selectedHelpers === 0
+              ? 'No helper'
               : `${selectedHelpers} helper${selectedHelpers > 1 ? 's' : ''}`
             }
             {selectedHelpers > 0 && (
@@ -232,7 +226,7 @@ export function HelperOption({ onNext, onBack }: HelperOptionProps) {
         </div>
         <Button
           onClick={handleNext}
-          className="w-full bg-blue-600 hover:bg-blue-700"
+          className="w-full bg-blue-600 hover:bg-blue-700 cursor-pointer"
         >
           Continue
         </Button>

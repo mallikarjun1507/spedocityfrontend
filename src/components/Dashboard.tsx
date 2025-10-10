@@ -6,10 +6,8 @@ import {
   Mail,
   MapPin,
   Package,
-  Plus,
   Truck,
-  Users,
-  X
+  Users
 } from 'lucide-react';
 import { motion } from 'motion/react';
 import { useEffect, useMemo, useState } from 'react';
@@ -19,7 +17,6 @@ import { TruckAnimation } from './TruckAnimation';
 import { Badge } from './ui/badge';
 import { Button } from './ui/button';
 import { Card, CardContent } from './ui/card';
-import { Input } from './ui/input';
 
 const serviceCards = [
   {
@@ -161,122 +158,52 @@ export function Dashboard({ onStartBooking, onTrackOrder, currentOrderId }: Dash
 
             </div>
           </div>
-
-          {/* Search Bar */}
-          <div className="space-y-3">
-            {/* Pickup Location */}
-            <div
-              className="relative cursor-pointer"
-              onClick={() => handleLocationPicker('pickup')}
-            >
-              <MapPin className="absolute left-3 top-3 w-4 h-4 text-green-500" />
-              <Input
-                placeholder="Pickup location"
-                value={pickup}
-                className="pl-10 bg-gray-50 border-gray-200 cursor-pointer"
-                readOnly
-              />
-            </div>
-
-            {/* Via Locations */}
-            {viaLocations.map((viaLocation, index) => (
-              <motion.div
-                key={viaLocation.id}
-                initial={{ opacity: 0, y: -10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
-                className="relative"
-              >
-                <div className="flex items-center gap-2">
-                  <div className="relative flex-1">
-                    <MapPin className="absolute left-3 top-3 w-4 h-4 text-orange-500" />
-                    <Input
-                      value={viaLocation.title}
-                      className="pl-10 pr-10 bg-orange-50 border-orange-200"
-                      readOnly
-                    />
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="absolute right-1 top-1 w-6 h-6 p-0 hover:bg-red-100"
-                      onClick={() => removeViaLocation(viaLocation.id)}
-                    >
-                      <X className="w-3 h-3 text-gray-500" />
-                    </Button>
-                  </div>
-                </div>
-              </motion.div>
-            ))}
-
-            {/* Add Via Location Button */}
-            <Button
-              variant="outline"
-              size="sm"
-              className="w-full border-dashed border-blue-300 text-blue-600 hover:bg-blue-50 cursor-pointer"
-              onClick={() => handleLocationPicker('via')}
-            >
-              <Plus className="w-4 h-4 mr-2" />
-              Add via location (optional)
-            </Button>
-
-            <div className="flex items-center justify-center">
-              <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-                <ArrowRight className="w-4 h-4 text-blue-600" />
-              </div>
-            </div>
-
-            {/* Drop Location */}
-            <div
-              className="relative cursor-pointer"
-              onClick={() => handleLocationPicker('dropoff')}
-            >
-              <MapPin className="absolute left-3 top-3 w-4 h-4 text-red-500" />
-              <Input
-                placeholder="Drop location"
-                value={dropoff}
-                className="pl-10 bg-gray-50 border-gray-200 cursor-pointer"
-                readOnly
-              />
-            </div>
-
-            {/* Book Now Button */}
-            {(pickup && dropoff) && (
-              <motion.div
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.3 }}
-              >
+          {/* Advertisement / Promo Card */}
+          <motion.div
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            className="relative bg-gradient-to-r from-blue-600 to-blue-500 text-white rounded-2xl shadow-lg overflow-hidden"
+          >
+            <CardContent className="p-6 flex flex-col md:flex-row items-center justify-between">
+              {/* Left Content */}
+              <div className="max-w-md">
+                <h2 className="text-2xl font-bold mb-2">Fast & Reliable Logistics</h2>
+                <p className="text-sm text-blue-100 mb-4">
+                  Book your delivery with just one tap. Our trucks are ready to move your goods safely and quickly.
+                </p>
                 <Button
-                  className="w-full bg-blue-600 hover:bg-blue-700 mt-4 group relative overflow-hidden cursor-pointer"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    onStartBooking({
-                      pickup,
-                      dropoff,
-                      viaLocations
-                    });
-                    navigate("/services");
-                  }}
+                  className="bg-white text-blue-600 hover:bg-blue-100 transition"
+                  onClick={() => onStartBooking()}
                 >
-                  <motion.div
-                    className="absolute inset-0 bg-gradient-to-r from-blue-600 to-blue-700"
-                    initial={{ x: '-100%' }}
-                    whileHover={{ x: '0%' }}
-                    transition={{ duration: 0.3 }}
-                  />
-                  <div className="relative z-10 flex items-center justify-center">
-                    <TruckAnimation
-                      serviceType="mini-truck"
-                      isHovered={true}
-                      size="sm"
-                    />
-                    <span className="ml-2">Book Now</span>
-                  </div>
+                  Book Now
                 </Button>
-              </motion.div>
-            )}
-          </div>
+              </div>
+
+              {/* Right Side Animation */}
+              <div className="relative w-full md:w-1/2 h-40 mt-6 md:mt-0">
+                {/* Moving Truck */}
+                <motion.div
+                  className="absolute bottom-0 left-0 flex items-end"
+                  initial={{ x: "-120%" }}
+                  animate={{ x: "100%" }}
+                  transition={{ duration: 8, repeat: Infinity, ease: "linear" }}
+                >
+                  <Truck className="w-16 h-16 text-white drop-shadow-lg" />
+                  {/* Boxes / Materials */}
+                  <motion.div
+                    className="ml-2 w-8 h-8 bg-yellow-300 rounded shadow-md"
+                    animate={{ y: [0, -5, 0] }}
+                    transition={{ repeat: Infinity, duration: 1.2 }}
+                  />
+                  <motion.div
+                    className="ml-1 w-6 h-6 bg-orange-400 rounded shadow-md"
+                    animate={{ y: [0, -4, 0] }}
+                    transition={{ repeat: Infinity, duration: 1, delay: 0.3 }}
+                  />
+                </motion.div>
+              </div>
+            </CardContent>
+          </motion.div>
         </motion.div>
       </div>
 

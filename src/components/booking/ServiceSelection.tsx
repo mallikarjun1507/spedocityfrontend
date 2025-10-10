@@ -1,9 +1,11 @@
 import { useState } from 'react';
+
+import { Bike, Car, Package, Truck, TruckIcon } from 'lucide-react';
 import { motion } from 'motion/react';
-import { ArrowLeft, Bike, Car, Truck, Package, TruckIcon } from 'lucide-react';
+import { Badge } from '../ui/badge';
 import { Button } from '../ui/button';
 import { Card, CardContent } from '../ui/card';
-import { Badge } from '../ui/badge';
+
 
 interface ServiceSelectionProps {
   pickup: string;
@@ -72,7 +74,7 @@ const services = [
   }
 ];
 
-export function ServiceSelection({ pickup, dropoff, onNext, onBack }: ServiceSelectionProps) {
+export function ServiceSelection({ pickup, dropoff, onNext }: ServiceSelectionProps) {
   const [selectedService, setSelectedService] = useState<ServiceType | null>(null);
 
   const handleNext = () => {
@@ -88,14 +90,9 @@ export function ServiceSelection({ pickup, dropoff, onNext, onBack }: ServiceSel
   return (
     <div className="flex flex-col h-full bg-gray-50">
       {/* Header */}
-      <div className="bg-white px-6 py-4 shadow-sm">
-        <div className="flex items-center justify-between mb-4">
-          <Button variant="ghost" size="sm" onClick={onBack}>
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Back
-          </Button>
-          <h1 className="text-lg">Select Service</h1>
-          <div className="w-16" />
+      <div className="sticky top-0 z-20 bg-white px-6 py-4 shadow-sm">
+        <div className="flex items-center justify-center mb-4">
+          <h1 className="text-lg font-semibold text-gray-800">Select Service</h1>
         </div>
 
         {/* Route Summary */}
@@ -135,21 +132,22 @@ export function ServiceSelection({ pickup, dropoff, onNext, onBack }: ServiceSel
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.3, delay: 0.1 * index }}
             >
-              <Card 
-                className={`cursor-pointer transition-all ${
-                  selectedService === service.id 
-                    ? 'border-blue-500 bg-blue-50 shadow-md' 
+              <Card
+                className={`cursor-pointer transition-all ${selectedService === service.id
+                    ? 'border-blue-500 bg-blue-50 shadow-md'
                     : 'border-gray-200 hover:border-gray-300 hover:shadow-sm'
-                }`}
+                  }`}
                 onClick={() => selectService(service.id)}
               >
                 <CardContent className="p-4">
                   <div className="flex items-center gap-4">
-                    <div className={`w-14 h-14 rounded-xl bg-gradient-to-r ${service.color} flex items-center justify-center`}>
+                    <div
+                      className={`w-14 h-14 rounded-xl bg-gradient-to-r ${service.color} flex items-center justify-center cursor-pointer`}
+                    >
                       <service.icon className="w-7 h-7 text-white" />
                     </div>
-                    
-                    <div className="flex-1">
+
+                    <div className="flex-1 cursor-pointer">
                       <div className="flex items-center gap-2 mb-1">
                         <h3 className="text-base">{service.name}</h3>
                         {service.popular && (
@@ -164,8 +162,8 @@ export function ServiceSelection({ pickup, dropoff, onNext, onBack }: ServiceSel
                         <span>📦 {service.capacity}</span>
                       </div>
                     </div>
-                    
-                    <div className="text-right">
+
+                    <div className="text-right cursor-pointer">
                       <p className="text-lg text-green-600 mb-1">{service.price}</p>
                       <p className="text-xs text-gray-500">Starting price</p>
                     </div>
@@ -182,9 +180,12 @@ export function ServiceSelection({ pickup, dropoff, onNext, onBack }: ServiceSel
         <Button
           onClick={handleNext}
           disabled={!selectedService}
-          className="w-full bg-blue-600 hover:bg-blue-700"
+          className="w-full bg-blue-600 hover:bg-blue-700 cursor-pointer"
         >
-          Continue with {selectedService ? services.find(s => s.id === selectedService)?.name : 'Service'}
+          Continue with{' '}
+          {selectedService
+            ? services.find((s) => s.id === selectedService)?.name
+            : 'Service'}
         </Button>
       </div>
     </div>

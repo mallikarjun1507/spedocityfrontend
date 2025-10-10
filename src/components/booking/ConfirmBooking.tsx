@@ -208,10 +208,10 @@ export function ConfirmBooking({ bookingData, onComplete }: ConfirmBookingProps)
                 Need Help?
               </h3>
               <div className="flex gap-3">
-                <Button variant="outline" size="sm" className="flex-1">
+                <Button variant="outline" size="sm" className="flex-1 cursor-pointer">
                   Call Support
                 </Button>
-                <Button variant="outline" size="sm" className="flex-1">
+                <Button variant="outline" size="sm" className="flex-1 cursor-pointer">
                   Live Chat
                 </Button>
               </div>
@@ -223,15 +223,15 @@ export function ConfirmBooking({ bookingData, onComplete }: ConfirmBookingProps)
       {/* Action Buttons */}
       <div className="fixed bottom-0 left-0 right-0 p-6 bg-white border-t space-y-3">
         <Button
-          variant="outline"
-          className="w-full bg-blue-600 hover:bg-blue-700"
+          
+          className="w-full bg-blue-600 hover:bg-blue-700 cursor-pointer"
           onClick={onComplete}
         >
           Track Delivery
         </Button>
         <Button
           onClick={onComplete}
-          className="w-full bg-blue-600 hover:bg-blue-700"
+          className="w-full bg-blue-600 hover:bg-blue-700 cursor-pointer"
         >
           Book Another Delivery
         </Button>

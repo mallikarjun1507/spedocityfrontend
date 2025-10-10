@@ -1,30 +1,28 @@
-import { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
-import { 
-  ArrowLeft, 
-  Phone, 
-  MessageCircle, 
-  AlertTriangle, 
-  Share, 
-  MapPin,
-  Clock,
-  User,
-  Truck,
-  CheckCircle,
+import {
+  AlertTriangle,
   Car,
-  Navigation,
-  Star,
-  Shield,
-  Timer,
-  Package,
+  CheckCircle,
+  Clock,
   Eye,
-  MoreVertical
+  MapPin,
+  MessageCircle,
+  MoreVertical,
+  Navigation,
+  Package,
+  Phone,
+  Share,
+  Shield,
+  Star,
+  Timer,
+  Truck,
+  User
 } from 'lucide-react';
+import { AnimatePresence, motion } from 'motion/react';
+import { useEffect, useState } from 'react';
+import { AnimatedProgressBar } from './AnimatedProgressBar';
+import { Badge } from './ui/badge';
 import { Button } from './ui/button';
 import { Card, CardContent } from './ui/card';
-import { Badge } from './ui/badge';
-import { Progress } from './ui/progress';
-import { AnimatedProgressBar } from './AnimatedProgressBar';
 
 interface ActiveOrderProps {
   orderId: string;
@@ -110,7 +108,7 @@ export function ActiveOrder({ orderId, onBack, onOrderComplete }: ActiveOrderPro
           lat: prev.lat + (Math.random() - 0.5) * 0.01,
           lng: prev.lng + (Math.random() - 0.5) * 0.01
         }));
-        
+
         // Simulate ETA updates
         if (eta > 1) {
           setEta(prev => Math.max(1, prev - Math.random() * 2));
@@ -149,14 +147,17 @@ export function ActiveOrder({ orderId, onBack, onOrderComplete }: ActiveOrderPro
       {/* Header - Fixed */}
       <div className="bg-white px-6 py-4 shadow-sm relative z-10">
         <div className="flex items-center justify-between">
-          <Button variant="ghost" size="sm" onClick={onBack}>
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Back
-          </Button>
-          <div className="text-center">
-            <h1 className="text-lg">Track Order</h1>
+
+          {/* Empty div to balance spacing on left */}
+          <div className="w-16" />
+
+          {/* Centered Track Order */}
+          <div className="text-center flex-1">
+            <h1 className="text-lg font-medium">Track Order</h1>
             <p className="text-sm text-gray-500">#{orderId}</p>
           </div>
+
+          {/* Right action buttons */}
           <div className="flex items-center gap-2">
             <Button variant="ghost" size="sm">
               <MoreVertical className="w-4 h-4" />
@@ -165,6 +166,7 @@ export function ActiveOrder({ orderId, onBack, onOrderComplete }: ActiveOrderPro
               <Share className="w-4 h-4" />
             </Button>
           </div>
+
         </div>
       </div>
 
@@ -202,7 +204,7 @@ export function ActiveOrder({ orderId, onBack, onOrderComplete }: ActiveOrderPro
               ))}
             </div>
           </div>
-          
+
           {/* Driver Location Indicator */}
           <motion.div
             initial={{ opacity: 0, scale: 0 }}
@@ -222,16 +224,16 @@ export function ActiveOrder({ orderId, onBack, onOrderComplete }: ActiveOrderPro
                 transition={{ duration: 2, repeat: Infinity, delay: 0.5 }}
                 className="absolute -inset-2 bg-blue-400 rounded-full"
               />
-              
+
               {/* Driver Vehicle */}
               <motion.div
-                animate={{ 
+                animate={{
                   rotate: currentStatus === 'in-transit' ? [0, 5, -5, 0] : 0,
                   scale: currentStatus === 'pickup' ? [1, 1.1, 1] : 1
                 }}
-                transition={{ 
-                  duration: currentStatus === 'in-transit' ? 3 : 2, 
-                  repeat: Infinity 
+                transition={{
+                  duration: currentStatus === 'in-transit' ? 3 : 2,
+                  repeat: Infinity
                 }}
                 className="w-14 h-14 bg-gradient-to-br from-blue-600 to-blue-700 rounded-full flex items-center justify-center shadow-lg border-2 border-white"
               >
@@ -252,14 +254,14 @@ export function ActiveOrder({ orderId, onBack, onOrderComplete }: ActiveOrderPro
                 <div className="flex items-center gap-2">
                   <div className="w-2 h-2 bg-green-500 rounded-full" />
                   <span className="text-sm font-medium text-gray-900">
-                    {currentStatus === 'pickup' ? 'Driver arriving' : 
-                     currentStatus === 'in-transit' ? 'En route to destination' : 
-                     'Moving towards you'}
+                    {currentStatus === 'pickup' ? 'Driver arriving' :
+                      currentStatus === 'in-transit' ? 'En route to destination' :
+                        'Moving towards you'}
                   </span>
                 </div>
                 <span className="text-xs text-gray-500">Live</span>
               </div>
-              
+
               <div className="flex items-center justify-between">
                 <div className="text-xs text-gray-600">
                   Distance: {orderDetails.distance}
@@ -271,7 +273,7 @@ export function ActiveOrder({ orderId, onBack, onOrderComplete }: ActiveOrderPro
                   </span>
                 </div>
               </div>
-              
+
               {/* Vehicle Number Display */}
               {currentStatus === 'pickup' && driverInfo && (
                 <motion.div
@@ -309,14 +311,14 @@ export function ActiveOrder({ orderId, onBack, onOrderComplete }: ActiveOrderPro
               <div className="p-4">
                 <div className="flex items-center gap-3">
                   <motion.div
-                    animate={{ 
+                    animate={{
                       scale: [1, 1.2, 1],
-                      rotate: [0, -10, 10, 0] 
+                      rotate: [0, -10, 10, 0]
                     }}
-                    transition={{ 
-                      duration: 0.8, 
+                    transition={{
+                      duration: 0.8,
                       repeat: Infinity,
-                      repeatDelay: 1 
+                      repeatDelay: 1
                     }}
                     className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center"
                   >
@@ -366,7 +368,7 @@ export function ActiveOrder({ orderId, onBack, onOrderComplete }: ActiveOrderPro
                   {orderDetails.service}
                 </Badge>
               </div>
-              
+
               <div className="space-y-4">
                 {/* Pickup */}
                 <div className="flex items-start gap-3">
@@ -376,7 +378,7 @@ export function ActiveOrder({ orderId, onBack, onOrderComplete }: ActiveOrderPro
                     <p className="text-gray-900">{orderDetails.pickup}</p>
                   </div>
                 </div>
-                
+
                 {/* Route Line */}
                 <div className="flex items-center gap-3">
                   <div className="w-3 flex flex-col items-center">
@@ -386,7 +388,7 @@ export function ActiveOrder({ orderId, onBack, onOrderComplete }: ActiveOrderPro
                     {orderDetails.distance} • {orderDetails.estimatedTime}
                   </div>
                 </div>
-                
+
                 {/* Dropoff */}
                 <div className="flex items-start gap-3">
                   <div className="w-3 h-3 bg-red-500 rounded-full mt-2" />
@@ -405,11 +407,10 @@ export function ActiveOrder({ orderId, onBack, onOrderComplete }: ActiveOrderPro
               <div className="flex items-center justify-between mb-6">
                 <h3 className="text-lg font-medium">Order Progress</h3>
                 <div className="flex items-center gap-2">
-                  <Badge className={`${
-                    currentStatus === 'pickup' ? 'bg-green-100 text-green-700' : 
-                    currentStatus === 'in-transit' ? 'bg-blue-100 text-blue-700' :
-                    'bg-gray-100 text-gray-700'
-                  }`}>
+                  <Badge className={`${currentStatus === 'pickup' ? 'bg-green-100 text-green-700' :
+                      currentStatus === 'in-transit' ? 'bg-blue-100 text-blue-700' :
+                        'bg-gray-100 text-gray-700'
+                    }`}>
                     {statusSteps.find(s => s.id === currentStatus)?.label}
                   </Badge>
                 </div>
@@ -420,7 +421,7 @@ export function ActiveOrder({ orderId, onBack, onOrderComplete }: ActiveOrderPro
                 currentStepIndex={getCurrentStepIndex()}
                 className="mb-4"
               />
-              
+
               {/* Current Status Description */}
               <div className="mt-4 p-4 bg-gray-50 rounded-lg">
                 <p className="text-sm text-gray-600">
@@ -446,12 +447,12 @@ export function ActiveOrder({ orderId, onBack, onOrderComplete }: ActiveOrderPro
                       <span className="text-sm text-green-600">Verified</span>
                     </div>
                   </div>
-                  
+
                   <div className="flex items-start gap-4 mb-6">
                     <div className="relative">
                       <div className="w-20 h-20 bg-gray-300 rounded-xl overflow-hidden ring-2 ring-blue-100">
-                        <img 
-                          src={driverInfo.photo} 
+                        <img
+                          src={driverInfo.photo}
                           alt={driverInfo.name}
                           className="w-full h-full object-cover"
                         />
@@ -460,7 +461,7 @@ export function ActiveOrder({ orderId, onBack, onOrderComplete }: ActiveOrderPro
                         <CheckCircle className="w-4 h-4 text-white" />
                       </div>
                     </div>
-                    
+
                     <div className="flex-1">
                       <div className="flex items-center gap-2 mb-2">
                         <h4 className="font-medium text-xl text-gray-900">{driverInfo.name}</h4>
@@ -470,7 +471,7 @@ export function ActiveOrder({ orderId, onBack, onOrderComplete }: ActiveOrderPro
                         </Badge>
                       </div>
                       <p className="text-gray-600 mb-3">{driverInfo.phone}</p>
-                      
+
                       {/* Driver Stats */}
                       <div className="flex items-center gap-4 text-sm">
                         <div className="flex items-center gap-1">
@@ -484,7 +485,7 @@ export function ActiveOrder({ orderId, onBack, onOrderComplete }: ActiveOrderPro
                       </div>
                     </div>
                   </div>
-                  
+
                   {/* Enhanced Vehicle Details */}
                   <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-4 border border-blue-100">
                     <div className="flex items-center gap-4">
@@ -507,7 +508,7 @@ export function ActiveOrder({ orderId, onBack, onOrderComplete }: ActiveOrderPro
                             </div>
                           </motion.div>
                         </div>
-                        
+
                         {currentStatus === 'pickup' && (
                           <motion.div
                             initial={{ opacity: 0 }}
@@ -540,25 +541,25 @@ export function ActiveOrder({ orderId, onBack, onOrderComplete }: ActiveOrderPro
       <div className="bg-white border-t p-6 space-y-4">
         {/* Primary Actions */}
         <div className="grid grid-cols-3 gap-3">
-          <Button 
-            variant="outline" 
-            className="flex-1 h-12"
+          <Button
+            variant="outline"
+            className="flex-1 h-12 cursor-pointer"
             disabled={!driverInfo}
           >
             <Phone className="w-4 h-4 mr-2" />
             Call
           </Button>
-          <Button 
-            variant="outline" 
-            className="flex-1 h-12"
+          <Button
+            variant="outline"
+            className="flex-1 h-12 cursor-pointer"
             disabled={!driverInfo}
           >
             <MessageCircle className="w-4 h-4 mr-2" />
             Chat
           </Button>
-          <Button 
-            variant="outline" 
-            className="flex-1 h-12 border-red-200 text-red-600 hover:bg-red-50"
+          <Button
+            variant="outline"
+            className="flex-1 h-12 border-red-200 text-red-600 hover:bg-red-50 cursor-pointer"
           >
             <AlertTriangle className="w-4 h-4 mr-2" />
             SOS
@@ -567,16 +568,16 @@ export function ActiveOrder({ orderId, onBack, onOrderComplete }: ActiveOrderPro
 
         {/* Secondary Actions */}
         <div className="grid grid-cols-2 gap-3">
-          <Button 
-            variant="outline" 
-            className="text-gray-600 h-10"
+          <Button
+            variant="outline"
+            className="text-gray-600 h-10 cursor-pointer"
             onClick={onBack}
           >
             View Order Details
           </Button>
-          <Button 
-            variant="outline" 
-            className="text-gray-600 h-10"
+          <Button
+            variant="outline"
+            className="text-gray-600 h-10 cursor-pointer"
             onClick={handleShare}
           >
             <Share className="w-4 h-4 mr-2" />
