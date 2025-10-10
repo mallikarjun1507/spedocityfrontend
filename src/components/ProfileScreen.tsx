@@ -355,6 +355,7 @@ export function ProfileScreen() {
     const user = localStorage.getItem('user');
     return user ? JSON.parse(user) : {};
   }, [])
+  console.log(userData,"jhjksahjkd")
   const userRating = 4.8;
   const totalDeliveries = 23;
   const walletBalance = 1250;
