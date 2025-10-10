@@ -1,11 +1,11 @@
-import { useState } from 'react';
+import { Info, Shield } from 'lucide-react';
 import { motion } from 'motion/react';
-import { ArrowLeft, MapPin, Shield, Info } from 'lucide-react';
+import { useState } from 'react';
 import { Button } from '../ui/button';
 import { Card, CardContent } from '../ui/card';
-import { Switch } from '../ui/switch';
 import { Label } from '../ui/label';
 import { Separator } from '../ui/separator';
+import { Switch } from '../ui/switch';
 
 interface FareEstimateProps {
   pickup: string;
@@ -67,13 +67,8 @@ export function FareEstimate({ pickup, dropoff, service, helpers, onNext, onBack
     <div className="flex flex-col h-full bg-gray-50">
       {/* Header */}
       <div className="bg-white px-6 py-4 shadow-sm">
-        <div className="flex items-center justify-between mb-4">
-          <Button variant="ghost" size="sm" onClick={onBack}>
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Back
-          </Button>
-          <h1 className="text-lg">Fare Estimate</h1>
-          <div className="w-16" />
+        <div className="flex items-center justify-center mb-4">
+          <h1 className="text-lg font-medium text-gray-800">Fare Estimate</h1>
         </div>
       </div>
 
@@ -107,9 +102,9 @@ export function FareEstimate({ pickup, dropoff, service, helpers, onNext, onBack
                     </div>
                   </div>
                 </div>
-                
+
                 <Separator />
-                
+
                 <div className="grid grid-cols-3 gap-4 text-center">
                   <div>
                     <p className="text-xs text-gray-500">Distance</p>
@@ -147,7 +142,7 @@ export function FareEstimate({ pickup, dropoff, service, helpers, onNext, onBack
                   onCheckedChange={setHasInsurance}
                 />
               </div>
-              
+
               {hasInsurance && (
                 <motion.div
                   initial={{ opacity: 0, height: 0 }}
@@ -176,28 +171,28 @@ export function FareEstimate({ pickup, dropoff, service, helpers, onNext, onBack
                   <span className="text-sm text-gray-600">Base fare</span>
                   <span className="text-sm">₹{basePrice}</span>
                 </div>
-                
+
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-gray-600">Distance ({estimatedDistance} km)</span>
                   <span className="text-sm">₹{distancePrice}</span>
                 </div>
-                
+
                 {helpers > 0 && (
                   <div className="flex items-center justify-between">
                     <span className="text-sm text-gray-600">Helper charges ({helpers} helper{helpers > 1 ? 's' : ''})</span>
                     <span className="text-sm">₹{helperPrice}</span>
                   </div>
                 )}
-                
+
                 {hasInsurance && (
                   <div className="flex items-center justify-between">
                     <span className="text-sm text-gray-600">Insurance</span>
                     <span className="text-sm">₹{insurancePrice}</span>
                   </div>
                 )}
-                
+
                 <Separator />
-                
+
                 <div className="flex items-center justify-between">
                   <span className="text-base">Total Amount</span>
                   <span className="text-lg text-green-600">₹{totalPrice}</span>
@@ -229,7 +224,7 @@ export function FareEstimate({ pickup, dropoff, service, helpers, onNext, onBack
         </div>
         <Button
           onClick={handleNext}
-          className="w-full bg-blue-600 hover:bg-blue-700"
+          className="w-full bg-blue-600 hover:bg-blue-700 cursor-pointer"
         >
           Proceed to Payment
         </Button>
