@@ -64,11 +64,7 @@ export function Schedule({ onNext, onBack }: ScheduleProps) {
     <div className="flex flex-col h-full bg-gray-50">
       {/* Header */}
       <div className="bg-white px-6 py-4 shadow-sm">
-        <div className="flex items-center justify-between mb-4">
-          <Button variant="ghost" size="sm" onClick={onBack}>
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Back
-          </Button>
+        <div className="flex items-center justify-center mb-4">
           <h1 className="text-lg">Schedule Delivery</h1>
           <div className="w-16" />
         </div>

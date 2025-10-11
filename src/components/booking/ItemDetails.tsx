@@ -1,11 +1,9 @@
+import { Camera, Minus, Plus, X } from 'lucide-react';
 import { useState } from 'react';
-import { motion } from 'motion/react';
-import { ArrowLeft, Plus, Minus, Camera, X } from 'lucide-react';
 import { Button } from '../ui/button';
-import { Input } from '../ui/input';
+import { Card, CardContent } from '../ui/card';
 import { Label } from '../ui/label';
 import { Switch } from '../ui/switch';
-import { Card, CardContent } from '../ui/card';
 import { Textarea } from '../ui/textarea';
 
 interface ItemDetailsProps {
@@ -86,11 +84,10 @@ export function ItemDetails({ onNext, onBack }: ItemDetailsProps) {
   return (
     <div className="flex flex-col h-full bg-gray-50">
       {/* Header */}
-      <div className="bg-white px-6 py-4 shadow-sm flex items-center justify-between">
-        <Button variant="ghost" size="sm" onClick={onBack} className="cursor-pointer">
-          <ArrowLeft className="w-4 h-4 mr-2" /> Back
-        </Button>
+      <div className="bg-white px-6 py-4 shadow-sm flex justify-center items-center">
         <h1 className="text-lg font-semibold">Parcel Items</h1>
+
+
         <div className="w-16" />
       </div>
 
