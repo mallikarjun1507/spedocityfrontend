@@ -64,9 +64,11 @@ export function PickupSelection({ onNext, onBack }: PickupSelectionProps) {
 
   const { isLoaded } = useJsApiLoader({
     id: "google-map-script",
-    googleMapsApiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY as string,
+    // googleMapsApiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY as string,
+     googleMapsApiKey:'AIzaSyBHyUtxzdJUQjDk8up2cQDM1emSxgrjhIA',
     libraries: ["places"]
   });
+
 
   const handleNext = () => {
     const location = selectedLocation || searchText;
@@ -76,6 +78,8 @@ export function PickupSelection({ onNext, onBack }: PickupSelectionProps) {
   const selectAddress = (address: string) => setSelectedLocation(address);
 
   const handleUseCurrentLocation = () => {
+    alert("button clicked")
+    console.log(navigator,'hhjhbn')
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (pos) => {
@@ -83,6 +87,7 @@ export function PickupSelection({ onNext, onBack }: PickupSelectionProps) {
             lat: pos.coords.latitude,
             lng: pos.coords.longitude
           };
+          console.log("new ", newCenter)
           setCenter(newCenter);
           setMarkerPosition(newCenter);
           setSelectedLocation("Current Location");
@@ -165,7 +170,7 @@ export function PickupSelection({ onNext, onBack }: PickupSelectionProps) {
         {/* Use Current Location Button */}
         <Button
           onClick={handleUseCurrentLocation}
-          className="absolute bottom-4 right-4 bg-white text-gray-900 shadow-md hover:bg-gray-50"
+          className="absolute bottom-4 right-4 bg-white text-gray-900 shadow-md hover:bg-gray-50 cursor-pointer"
           size="sm"
         >
           <MapPin className="w-4 h-4 mr-2" />
