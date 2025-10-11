@@ -1,10 +1,9 @@
-import { useState } from 'react';
+import { Clock, CreditCard, DollarSign, Smartphone, Wallet } from 'lucide-react';
 import { motion } from 'motion/react';
-import { ArrowLeft, Wallet, CreditCard, Smartphone, DollarSign, Clock } from 'lucide-react';
+import { useState } from 'react';
+import { Badge } from '../ui/badge';
 import { Button } from '../ui/button';
 import { Card, CardContent } from '../ui/card';
-import { Badge } from '../ui/badge';
-import { Separator } from '../ui/separator';
 
 interface PaymentPageProps {
   fareData: {
@@ -90,13 +89,8 @@ export function PaymentPage({ fareData, onNext, onBack }: PaymentPageProps) {
     <div className="flex flex-col h-full bg-gray-50">
       {/* Header */}
       <div className="bg-white px-6 py-4 shadow-sm">
-        <div className="flex items-center justify-between mb-4">
-          <Button variant="ghost" size="sm" onClick={onBack}>
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Back
-          </Button>
-          <h1 className="text-lg">Payment</h1>
-          <div className="w-16" />
+        <div className="flex items-center justify-center mb-4">
+          <h1 className="text-lg font-medium text-gray-800">Payment</h1>
         </div>
       </div>
 
@@ -139,7 +133,7 @@ export function PaymentPage({ fareData, onNext, onBack }: PaymentPageProps) {
           {/* Payment Methods */}
           <div className="space-y-4">
             <h2 className="text-lg">Choose Payment Method</h2>
-            
+
             {paymentMethods.map((method, index) => (
               <motion.div
                 key={method.id}
@@ -147,14 +141,13 @@ export function PaymentPage({ fareData, onNext, onBack }: PaymentPageProps) {
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ duration: 0.3, delay: 0.1 * index }}
               >
-                <Card 
-                  className={`cursor-pointer transition-all ${
-                    !method.available 
+                <Card
+                  className={`cursor-pointer transition-all ${!method.available
                       ? 'opacity-50 cursor-not-allowed bg-gray-100'
                       : selectedPayment === method.id
                         ? 'border-blue-500 bg-blue-50 shadow-md'
                         : 'border-gray-200 hover:border-gray-300 hover:shadow-sm'
-                  }`}
+                    }`}
                   onClick={() => method.available && selectPayment(method.id)}
                 >
                   <CardContent className="p-4">
@@ -162,7 +155,7 @@ export function PaymentPage({ fareData, onNext, onBack }: PaymentPageProps) {
                       <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${method.color}`}>
                         <method.icon className="w-6 h-6" />
                       </div>
-                      
+
                       <div className="flex-1">
                         <div className="flex items-center gap-2 mb-1">
                           <h3 className="text-sm">{method.name}</h3>
@@ -188,7 +181,7 @@ export function PaymentPage({ fareData, onNext, onBack }: PaymentPageProps) {
                           </Badge>
                         </div>
                       )}
-                      
+
                       {method.id === 'wallet' && fareData.totalPrice > 275 && (
                         <div className="text-right">
                           <p className="text-xs text-red-600">Insufficient balance</p>
@@ -240,7 +233,7 @@ export function PaymentPage({ fareData, onNext, onBack }: PaymentPageProps) {
         <Button
           onClick={handleNext}
           disabled={!selectedPayment || (selectedPayment === 'wallet' && fareData.totalPrice > 275)}
-          className="w-full bg-blue-600 hover:bg-blue-700"
+          className="w-full bg-blue-600 hover:bg-blue-700 cursor-pointer"
         >
           {selectedPayment === 'cod' ? 'Confirm Booking' : `Pay ₹${fareData.totalPrice}`}
         </Button>

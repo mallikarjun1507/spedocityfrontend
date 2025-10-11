@@ -19,6 +19,8 @@ import { SplashScreen } from "./components/SplashScreen";
 import { useIsMobile } from "./components/ui/use-mobile";
 import { WalletScreen } from "./components/WalletScreen";
 import { AuthProvider, useAuth } from './contexts/AuthContext';
+import ShiftingService from "./components/ShiftingService"; // exact match to filename
+import ShiftingType from "./components/ShiftingType";
 
 type OnboardingStep = "splash" | "intro" | "auth" | "complete";
 type AppTab = "home" | "orders" | "wallet" | "notifications" | "profile";
@@ -156,6 +158,22 @@ function AppContent() {
                   <BookingFlow onComplete={handleBookingComplete} onCancel={handleBookingCancel} />
                 </ProtectedRoute>
               }
+            />
+            <Route
+              path="/ShiftingService"
+              element={
+                <ProtectedRoute>
+                  <ShiftingService />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+            path="/ShiftingType"
+            element={
+              <ProtectedRoute>
+                <ShiftingType/>
+              </ProtectedRoute>
+            }
             />
             <Route
               path="/active-order"

@@ -261,7 +261,7 @@ export function Schedule({ onNext, onBack }: ScheduleProps) {
         <Button
           onClick={handleNext}
           disabled={!canContinue()}
-          className="w-full bg-blue-600 hover:bg-blue-700"
+          className="w-full bg-blue-600 hover:bg-blue-700 cursor-pointer"
         >
           Continue
         </Button>

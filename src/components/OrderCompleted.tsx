@@ -1,20 +1,19 @@
-import { useState } from 'react';
-import { motion } from 'motion/react';
-import { 
-  CheckCircle, 
-  Download, 
-  Star, 
-  DollarSign, 
-  ArrowLeft,
-  Receipt,
+import {
+  CheckCircle,
+  DollarSign,
+  Download,
   Heart,
+  MapPin,
   MessageCircle,
-  MapPin
+  Receipt,
+  Star
 } from 'lucide-react';
+import { motion } from 'motion/react';
+import { useState } from 'react';
+import { Badge } from './ui/badge';
 import { Button } from './ui/button';
 import { Card, CardContent } from './ui/card';
 import { Textarea } from './ui/textarea';
-import { Badge } from './ui/badge';
 
 interface OrderCompletedProps {
   orderId: string;
@@ -56,16 +55,10 @@ export function OrderCompleted({ orderId, amount, onBack, onDone, onTrackDeliver
     <div className="flex flex-col h-full bg-gray-50">
       {/* Header */}
       <div className="bg-white px-6 py-4 shadow-sm">
-        <div className="flex items-center justify-between">
-          <Button variant="ghost" size="sm" onClick={onBack}>
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Back
-          </Button>
-          <h1 className="text-lg">Order Completed</h1>
-          <div className="w-16" />
+        <div className="flex items-center justify-center">
+          <h1 className="text-lg font-medium text-gray-800">Order Completed</h1>
         </div>
       </div>
-
       <div className="flex-1 overflow-y-auto p-6 pb-24">
         {/* Success Animation */}
         <motion.div
@@ -94,7 +87,7 @@ export function OrderCompleted({ orderId, amount, onBack, onDone, onTrackDeliver
                 <h3 className="text-lg">Order Summary</h3>
                 <Badge className="bg-green-100 text-green-700">Delivered</Badge>
               </div>
-              
+
               <div className="space-y-3">
                 <div className="flex justify-between">
                   <span className="text-gray-600">Order ID</span>
@@ -134,8 +127,8 @@ export function OrderCompleted({ orderId, amount, onBack, onDone, onTrackDeliver
                     <p className="text-sm text-gray-600">Download PDF receipt</p>
                   </div>
                 </div>
-                <Button 
-                  variant="outline" 
+                <Button className='cursor-pointer'
+                  variant="outline"
                   size="sm"
                   onClick={handleDownloadReceipt}
                 >
@@ -157,7 +150,7 @@ export function OrderCompleted({ orderId, amount, onBack, onDone, onTrackDeliver
           <Card>
             <CardContent className="p-6">
               <h3 className="text-lg mb-4">Rate Your Experience</h3>
-              
+
               {/* Star Rating */}
               <div className="flex justify-center gap-2 mb-4">
                 {[1, 2, 3, 4, 5].map((star) => (
@@ -169,11 +162,10 @@ export function OrderCompleted({ orderId, amount, onBack, onDone, onTrackDeliver
                     onClick={() => setRating(star)}
                   >
                     <Star
-                      className={`w-8 h-8 ${
-                        star <= (hoveredRating || rating)
-                          ? 'fill-yellow-400 text-yellow-400'
-                          : 'text-gray-300'
-                      } transition-colors`}
+                      className={`w-8 h-8 cursor-pointer ${star <= (hoveredRating || rating)
+                        ? 'fill-yellow-400 text-yellow-400'
+                        : 'text-gray-300'
+                        } transition-colors`}
                     />
                   </button>
                 ))}
@@ -216,9 +208,9 @@ export function OrderCompleted({ orderId, amount, onBack, onDone, onTrackDeliver
               </div>
 
               {!showTipOptions ? (
-                <Button 
-                  variant="outline" 
-                  className="w-full"
+                <Button
+                  variant="outline"
+                  className="w-full cursor-pointer"
                   onClick={() => setShowTipOptions(true)}
                 >
                   <DollarSign className="w-4 h-4 mr-2" />
@@ -232,7 +224,7 @@ export function OrderCompleted({ orderId, amount, onBack, onDone, onTrackDeliver
                 >
                   <div className="grid grid-cols-4 gap-2 mb-4">
                     {tipOptions.map((tip) => (
-                      <Button
+                      <Button className='cursor-pointer'
                         key={tip}
                         variant={tipAmount === tip ? "default" : "outline"}
                         size="sm"
@@ -243,7 +235,7 @@ export function OrderCompleted({ orderId, amount, onBack, onDone, onTrackDeliver
                     ))}
                   </div>
                   <div className="flex gap-2">
-                    <Button
+                    <Button className='cursor-pointer'
                       variant="outline"
                       size="sm"
                       onClick={() => {
@@ -256,7 +248,7 @@ export function OrderCompleted({ orderId, amount, onBack, onDone, onTrackDeliver
                     {tipAmount > 0 && (
                       <Button
                         size="sm"
-                        className="flex-1"
+                        className="flex-1 cursor-pointer"
                         onClick={() => console.log('Tip added:', tipAmount)}
                       >
                         Add ₹{tipAmount} Tip
@@ -278,9 +270,9 @@ export function OrderCompleted({ orderId, amount, onBack, onDone, onTrackDeliver
         >
           {/* Track Delivery Button */}
           {onTrackDelivery && (
-            <Button 
+            <Button
               onClick={onTrackDelivery}
-              className="w-full bg-green-600 hover:bg-green-700 h-14"
+              className="w-full bg-green-600 hover:bg-green-700 h-14 cursor-pointer"
             >
               <div className="flex items-center justify-center gap-2">
                 <MapPin className="w-5 h-5" />
@@ -288,13 +280,13 @@ export function OrderCompleted({ orderId, amount, onBack, onDone, onTrackDeliver
               </div>
             </Button>
           )}
-          
+
           {/* Rebook Button */}
           {onRebook && (
-            <Button 
+            <Button
               onClick={onRebook}
               variant="outline"
-              className="w-full h-14 border-blue-200 hover:bg-blue-50 hover:border-blue-300"
+              className="w-full h-14 border-blue-200 hover:bg-blue-50 hover:border-blue-300 cursor-pointer"
             >
               <div className="flex items-center justify-center gap-2">
                 <Receipt className="w-5 h-5 text-blue-600" />
@@ -311,7 +303,7 @@ export function OrderCompleted({ orderId, amount, onBack, onDone, onTrackDeliver
           transition={{ duration: 0.5, delay: 0.7 }}
           className="grid grid-cols-1 gap-4 mb-6"
         >
-          <Button variant="outline" className="h-16">
+          <Button variant="outline" className="h-16 cursor-pointer">
             <div className="flex items-center justify-center gap-2">
               <MessageCircle className="w-5 h-5" />
               <span>Contact Support</span>
@@ -324,7 +316,7 @@ export function OrderCompleted({ orderId, amount, onBack, onDone, onTrackDeliver
       <div className="fixed bottom-0 left-0 right-0 p-6 bg-white border-t">
         <Button
           onClick={handleSubmitRating}
-          className="w-full bg-blue-600 hover:bg-blue-700"
+          className="w-full bg-blue-600 hover:bg-blue-700 cursor-pointer"
           disabled={rating === 0}
         >
           {rating > 0 ? 'Submit & Continue' : 'Rate to Continue'}
