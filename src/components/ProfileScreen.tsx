@@ -4,6 +4,7 @@ import {
   useJsApiLoader
 } from "@react-google-maps/api";
 import axios from 'axios';
+import API from "../api/axiosInstance";
 import {
   ArrowLeft,
   Camera,
@@ -139,12 +140,11 @@ export function ProfileScreen() {
     // -------------------- Google Maps Loader --------------------
     const { isLoaded } = useJsApiLoader({
       // googleMapsApiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY as string,
-        googleMapsApiKey:'AIzaSyBHyUtxzdJUQjDk8up2cQDM1emSxgrjhIA',
+      googleMapsApiKey: 'AIzaSyBHyUtxzdJUQjDk8up2cQDM1emSxgrjhIA',
       libraries,
 
     });
 
-    console.log("API Key:", import.meta.env.VITE_GOOGLE_MAPS_API_KEY);
 
     // -------------------- Init Place Autocomplete --------------------
     useEffect(() => {
@@ -171,55 +171,52 @@ export function ProfileScreen() {
     }, [isLoaded, map]);
 
     // -------------------- Handlers --------------------
-    const handleSaveAddress = () => {
+    useEffect(() => {
+      API.get("/addresses")
+        .then((res) => setAddresses(res.data))
+        .catch((err) => console.error(err));
+    }, []);
+
+    const handleSaveAddress = async () => {
       if (!selectedLocation) {
         toast.error("Please select a location");
         return;
       }
 
-      if (editingAddress) {
-        // 🔄 Update existing
-        setAddresses((prev) =>
-          prev.map((a) =>
-            a.id === editingAddress.id
-              ? {
-                ...a,
-                address: selectedLocation.address,
-                lat: selectedLocation.lat,
-                lng: selectedLocation.lng,
-              }
-              : a
-          )
-        );
-        toast.success("Address updated");
-      } else {
-        // ➕ Add new
-        const newId = addresses.length
-          ? Math.max(...addresses.map((a) => a.id)) + 1
-          : 1;
-        setAddresses([
-          ...addresses,
-          {
-            id: newId,
-            label: `Address ${newId}`,
-            address: selectedLocation.address,
-            lat: selectedLocation.lat,
-            lng: selectedLocation.lng,
-          },
-        ]);
-        toast.success("Address added successfully");
+      const newAddress = { address: selectedLocation.address };
+
+      try {
+        if (editingAddress) {
+          await API.put(`/addresses/${editingAddress.id}`, newAddress);
+          toast.success("Address updated successfully");
+        } else {
+          await API.post("/addresses", newAddress);
+          toast.success("Address added successfully");
+        }
+
+        const res = await API.get("/addresses");
+        setAddresses(res.data);
+      } catch (err) {
+        toast.error("Error saving address");
+        console.error(err);
       }
 
-      // Reset modal
       setShowMap(false);
       setEditingAddress(null);
       setSelectedLocation(null);
     };
 
-    const handleDelete = (id: number) => {
-      setAddresses(addresses.filter((a) => a.id !== id));
-      toast.success("Address deleted");
+    const handleDelete = async (id: number) => {
+      try {
+        await API.delete(`/addresses/${id}`);
+        setAddresses((prev) => prev.filter((a) => a.id !== id));
+        toast.success("Address deleted");
+      } catch (err) {
+        toast.error("Failed to delete address");
+        console.error(err);
+      }
     };
+
 
     const handleAddNew = () => {
       setEditingAddress(null);
@@ -356,7 +353,7 @@ export function ProfileScreen() {
     const user = localStorage.getItem('user');
     return user ? JSON.parse(user) : {};
   }, [])
-  console.log(userData,"jhjksahjkd")
+  console.log(userData, "jhjksahjkd")
   const userRating = 4.8;
   const totalDeliveries = 23;
   const walletBalance = 1250;
@@ -391,8 +388,8 @@ export function ProfileScreen() {
 
 
   if (activeScreen === 'profile') {
-  return <EditProfileScreen onBack={() => setActiveScreen(null)} userData={userData} />;
-}
+    return <EditProfileScreen onBack={() => setActiveScreen(null)} userData={userData} />;
+  }
 
   if (activeScreen === 'wallet') {
     return <WalletPaymentsScreen onBack={() => setActiveScreen(null)} walletBalance={walletBalance} />;
