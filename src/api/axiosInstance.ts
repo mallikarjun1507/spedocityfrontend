@@ -1,4 +1,5 @@
 import axios from "axios";
+import { getUser } from "../utils/utils";
 
 // Create a reusable Axios instance
 const API = axios.create({
@@ -10,6 +11,7 @@ const API = axios.create({
 
 // Automatically attach token from localStorage if it exists
 API.interceptors.request.use((config) => {
+  
   const token = localStorage.getItem("token");
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
