@@ -39,7 +39,7 @@ import { Button } from './ui/button';
 import { Card, CardContent } from './ui/card';
 import { Input } from './ui/input';
 import { Label } from './ui/label';
-
+import { getUser } from "../utils/utils";
 
 // <ToastContainer />
 const menuItems = [
@@ -95,7 +95,7 @@ const menuItems = [
 
 export function ProfileScreen() {
   const [activeScreen, setActiveScreen] = useState<string | null>(null);
-
+  const userId = getUser().userId;
   // ✅ keep outside to avoid reloading warning
   const libraries: ("places")[] = ["places"];
 
@@ -125,15 +125,12 @@ export function ProfileScreen() {
 
   function AddressManager({ onBack }: AddressManagerProps) {
     // -------------------- State --------------------
-    const [addresses, setAddresses] = useState<Address[]>([
-      { id: 1, label: "Home", address: "123 MG Road, Bengaluru" },
-      { id: 2, label: "Office", address: "IT Park, Whitefield" },
-    ]);
+    const [addresses, setAddresses] = useState<Address[]>([]);
     const [showMap, setShowMap] = useState(false);
     const [editingAddress, setEditingAddress] = useState<Address | null>(null);
     const [selectedLocation, setSelectedLocation] = useState<any>(null);
     const [map, setMap] = useState<any>(null);
-
+    const userData = getUser();
     // ✅ Ref for search input
     const inputRef = useRef<HTMLInputElement>(null);
 
@@ -169,53 +166,89 @@ export function ProfileScreen() {
 
       }
     }, [isLoaded, map]);
-
-    // -------------------- Handlers --------------------
-    useEffect(() => {
-      API.get("/addresses")
-        .then((res) => setAddresses(res.data))
-        .catch((err) => console.error(err));
-    }, []);
-
-    const handleSaveAddress = async () => {
-      if (!selectedLocation) {
-        toast.error("Please select a location");
-        return;
-      }
-
-      const newAddress = { address: selectedLocation.address };
-
-      try {
-        if (editingAddress) {
-          await API.put(`/addresses/${editingAddress.id}`, newAddress);
-          toast.success("Address updated successfully");
-        } else {
-          await API.post("/addresses", newAddress);
-          toast.success("Address added successfully");
+      const fetchAddresses = async () => {
+    try {
+      const res = await axios.get(`${URL}getUser-address`, {
+        params: { userId },
+        headers: {
+          Authorization: userData?.authToken
         }
-
-        const res = await API.get("/addresses");
-        setAddresses(res.data);
-      } catch (err) {
-        toast.error("Error saving address");
-        console.error(err);
+      });
+      setAddresses(res.data.data);
+    } catch (err) {
+      console.error("Error fetching addresses:", err);
+      if (err.response && err.response.data?.message) {
+        toast.error(err.response.data.message);
+      } else {
+        toast.error("Failed to load addresses");
       }
+    }
+  };
+    useEffect(() => {
 
-      setShowMap(false);
-      setEditingAddress(null);
-      setSelectedLocation(null);
+
+  fetchAddresses();
+    }, [userId, userData?.authToken]); // ✅ add deps
+    const handleSaveAddress = async () => {
+  if (!selectedLocation) {
+    toast.error("Please select a location");
+    return;
+  }
+
+  const newAddress = { 
+    userId: userId,
+    latitude: selectedLocation.lat,
+    langitude: selectedLocation.lng,
+    address: selectedLocation.address 
+  };
+
+  try {
+    const res = await axios.post(`${URL}user-address`, newAddress, {
+      headers: {
+        Authorization: userData?.authToken
+      }
+    });
+
+    console.log(res, "response");
+
+    if (res.data.success) {
+      toast.success(res.data.message);
+    } else {
+      toast.error(res.data.message);
+    }
+    //getAddresses
+  } catch (err) {
+    console.error("Error saving address:", err);
+
+    // 👇 Handle error responses with custom message from backend
+    if (err.response && err.response.data && err.response.data.message) {
+      toast.error(err.response.data.message);
+    } else {
+      toast.error("Error saving address");
+    }
+  }
+
+  setShowMap(false);
+  setEditingAddress(null);
+  setSelectedLocation(null);
     };
-
-    const handleDelete = async (id: number) => {
+    const handleDeleteAddress = async (id: number) => {
       try {
-        await API.delete(`/addresses/${id}`);
-        setAddresses((prev) => prev.filter((a) => a.id !== id));
-        toast.success("Address deleted");
-      } catch (err) {
-        toast.error("Failed to delete address");
-        console.error(err);
+        const res = await axios.delete(`${URL}deleteUser-address/${id}`, {
+          headers: {
+            Authorization: userData?.authToken
+          }
+        });
+        if(res.data.success){
+          toast.success(res.data.message);
+
+          fetchAddresses()
       }
-    };
+    }
+      catch (err) {
+        console.error("Error deleting address:", err);
+      }
+    }
 
 
     const handleAddNew = () => {
@@ -224,13 +257,7 @@ export function ProfileScreen() {
       setShowMap(true);
     };
 
-    const handleEdit = (addr: Address) => {
-      setEditingAddress(addr);
-      setSelectedLocation(addr); // Prefill map with existing address location
-      setShowMap(true);
-    };
 
-    // -------------------- UI --------------------
     return (
       <div className="p-4 sm:p-6 max-w-5xl mx-auto">
         {/* Back Button */}
@@ -252,38 +279,51 @@ export function ProfileScreen() {
         </div>
 
         {/* Saved Address Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 ">
-          {addresses.map((addr) => (
-            <div
-              key={addr.id}
-              className="border rounded-xl shadow-md p-4 bg-white flex flex-col justify-between transition hover:shadow-lg"
-            >
-              <div>
-                <p className="font-medium text-gray-900">{addr.label}</p>
-                <p className="text-gray-600 text-sm">{addr.address}</p>
-              </div>
-
-              <div className="flex justify-end gap-2 mt-3">
-                <Button
-                  variant="outline"
-                  size="icon"
-                  className="h-8 w-8 cursor-pointer bg-blue-600 text-white hover:bg-blue-700"
-                  onClick={() => handleEdit(addr)}
-                >
-                  <Edit3 className="w-4 h-4" />
-                </Button>
-                <Button
-                  variant="destructive"
-                  size="icon"
-                  className="h-8 w-8 cursor-pointer bg-blue-600 text-white hover:bg-blue-700"
-                  onClick={() => handleDelete(addr.id)}
-                >
-                  <Trash2 className="w-4 h-4" />
-                </Button>
-              </div>
-            </div>
-          ))}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+  {addresses.map((addr) => (
+    <div
+      key={addr.id}
+      className="relative cursor-pointer bg-white border border-gray-100 rounded-2xl shadow-sm hover:shadow-lg transition-all p-5 flex flex-col justify-between"
+    >
+      {/* Location Header */}
+      <div className="flex items-start p-3 mt-1 gap-3">
+        <div className="flex-shrink-0 bg-blue-100 text-blue-600 rounded-full p-2 mt-1">
+          <MapPin className="w-5 h-5" />
         </div>
+        <div>
+          <h3 className="font-semibold text-gray-900 text-base leading-snug">
+            {addr.user_address.split(',')[0] || 'Saved Address'}
+          </h3>
+          <p className="text-gray-500 text-sm mt-1 leading-relaxed">
+            {addr.user_address}
+          </p>
+        </div>
+      </div>
+
+      {/* Action Buttons */}
+      <div className="absolute   flex gap-2" style={{ right: '10px', top:'20px' }}>
+        <Button
+          variant="outline"
+          size="icon"
+          className="h-9 w-9 cursor-pointer rounded-full bg-blue-50 text-blue-600 hover:bg-red-600 hover:text-white transition"
+          // onClick={() => handleEdit(addr)}
+        >
+          <Edit3 className="w-4 h-4" />
+        </Button>
+
+        <Button
+          variant="destructive"
+          size="icon"
+          className="h-9 w-9 cursor-pointer rounded-full bg-red-50 text-red-600 hover:bg-red-600 hover:text-white transition"
+          onClick={() => handleDeleteAddress(addr.id)}
+        >
+          <Trash2 className="w-4 h-4" />
+        </Button>
+      </div>
+    </div>
+  ))}
+</div>
+
 
         {/* Map Modal */}
         {showMap && isLoaded && (
@@ -349,10 +389,7 @@ export function ProfileScreen() {
     );
   }
   const { logout } = useAuth()
-  const userData = useMemo(() => {
-    const user = localStorage.getItem('user');
-    return user ? JSON.parse(user) : {};
-  }, [])
+  const userData = getUser();
   console.log(userData, "jhjksahjkd")
   const userRating = 4.8;
   const totalDeliveries = 23;
@@ -578,28 +615,60 @@ export function ProfileScreen() {
 }
 
 // Edit Profile Screen
-function EditProfileScreen({ onBack, userData }: { onBack: () => void; userData: { authToken: string; mobileNumber: number; userId: string } }) {
+
+export default function EditProfileScreen({
+  onBack,
+  userData,
+}: {
+  onBack: () => void;
+  userData: {
+    authToken: string;
+    mobileNumber: string;
+    userId: string;
+    userData: {
+      full_name: string;
+      email: string;
+      date_of_birth: string;
+      gender: string;
+    };
+  };
+}) {
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState({
-    name: "",
-    email: "",
+    name: '',
+    email: '',
     dateOfBirth: '',
     gender: '',
-    emergencyContact: '+91 98765 43211'
+    emergencyContact: '+91 98765 43211',
   });
+
+  // 🟢 Pre-fill formData from userData
+  useEffect(() => {
+    if (userData?.userData) {
+      const { full_name, email, date_of_birth, gender } = userData.userData;
+      setFormData({
+        name: full_name || '',
+        email: email || '',
+        dateOfBirth: date_of_birth ? date_of_birth.split('T')[0] : '',
+        gender: gender || '',
+        emergencyContact: '+91 98765 43211', // or fetch from user profile
+      });
+    }
+  }, [userData]);
 
   const handleSave = async () => {
     try {
       const res = await axios.post(
         `${URL}update-profile`,
-        { ...formData, userId: userData?.userId }, // body
+        { ...formData, userId: userData?.userId },
         {
           headers: {
             'Authorization': userData?.authToken,
-            'Content-Type': 'application/json', // or multipart/form-data depending on backend
+            'Content-Type': 'application/json',
           },
         }
       );
+
       if (res.status === 200 && res.data) {
         toast.success('Profile updated successfully');
       } else {
@@ -612,33 +681,31 @@ function EditProfileScreen({ onBack, userData }: { onBack: () => void; userData:
     setIsEditing(false);
   };
 
-  const handleCancel = () => {
-    setIsEditing(false);
-  };
+  const handleCancel = () => setIsEditing(false);
 
   return (
     <div className="flex flex-col h-full bg-gray-50">
       <div className="bg-white px-6 py-4 shadow-sm">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <Button variant="ghost" size="sm" onClick={onBack} className='cursor-pointer'>
+            <Button variant="ghost" size="sm" onClick={onBack}>
               <ChevronRight className="w-4 h-4 mr-2 rotate-180" />
               Back
             </Button>
             <h1 className="text-lg">Edit Profile</h1>
           </div>
           {!isEditing ? (
-            <Button size="sm" onClick={() => setIsEditing(true)} className='cursor-pointer'>
+            <Button size="sm" onClick={() => setIsEditing(true)}>
               <Edit3 className="w-4 h-4 mr-2" />
               Edit
             </Button>
           ) : (
             <div className="flex gap-2">
-              <Button variant="outline" size="sm" onClick={handleCancel} className='cursor-pointer'>
+              <Button variant="outline" size="sm" onClick={handleCancel}>
                 <X className="w-4 h-4 mr-1" />
                 Cancel
               </Button>
-              <Button size="sm" onClick={handleSave} className='cursor-pointer'>
+              <Button size="sm" onClick={handleSave}>
                 <Check className="w-4 h-4 mr-1" />
                 Save
               </Button>
@@ -647,93 +714,72 @@ function EditProfileScreen({ onBack, userData }: { onBack: () => void; userData:
         </div>
       </div>
 
+      {/* --- Body --- */}
       <div className="flex-1 overflow-y-auto p-6 pb-24 md:pb-6">
-        {/* Profile Photo */}
         <Card className="mb-6">
-          <CardContent className="p-6">
-            <div className="text-center">
-              <div className="relative inline-block mb-4">
-                <Avatar className="w-24 h-24">
-                  <AvatarFallback className={`text-white text-2xl transition-colors ${isEditing ? 'bg-purple-600' : 'bg-blue-600'
-                    }`}>
-                    {formData.name.split(' ').map(n => n[0]).join('')}
-                  </AvatarFallback>
-                </Avatar>
-                {isEditing && (
-                  <Button
-                    size="sm"
-                    className="cursor-pointer absolute -bottom-2 -right-2 w-8 h-8 rounded-full p-0 bg-blue-600 hover:bg-blue-700"
-                  // onClick={() => console.log('Change profile photo')}
-                  >
-                    <Camera className="w-4 h-4" />
-                  </Button>
-                )}
-              </div>
-              <h2 className="text-lg font-medium">{formData.name}</h2>
-              <p className="text-sm text-gray-600">Member since Jan 2024</p>
+          <CardContent className="p-6 text-center">
+            <div className="relative inline-block mb-4">
+              <Avatar className="w-24 h-24">
+                <AvatarFallback className={`text-white text-2xl ${isEditing ? 'bg-purple-600' : 'bg-blue-600'}`}>
+                  {formData.name ? formData.name[0].toUpperCase() : '?'}
+                </AvatarFallback>
+              </Avatar>
+              {isEditing && (
+                <Button
+                  size="sm"
+                  className="absolute -bottom-2 -right-2 w-8 h-8 rounded-full p-0 bg-blue-600 hover:bg-blue-700"
+                >
+                  <Camera className="w-4 h-4" />
+                </Button>
+              )}
             </div>
+            <h2 className="text-lg font-medium">{formData.name}</h2>
+            <p className="text-sm text-gray-600">Member since Jan 2024</p>
           </CardContent>
         </Card>
 
-        {/* Personal Information */}
+        {/* --- Personal Info --- */}
         <Card className="mb-6">
           <CardContent className="p-6">
             <h3 className="text-lg font-medium mb-4">Personal Information</h3>
             <div className="space-y-4">
               <div>
-                <Label htmlFor="name">Full Name</Label>
+                <Label>Full Name</Label>
                 <Input
-                  id="name"
                   value={formData.name}
                   onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
                   disabled={!isEditing}
-                  className={!isEditing ? 'bg-gray-50' : ''}
                 />
               </div>
-
               <div>
-                <Label htmlFor="email">Email Address</Label>
+                <Label>Email Address</Label>
                 <Input
-                  id="email"
                   type="email"
                   value={formData.email}
                   onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
                   disabled={!isEditing}
-                  className={!isEditing ? 'bg-gray-50' : ''}
                 />
               </div>
-
               <div>
-                <Label htmlFor="phone">Phone Number</Label>
-                <Input
-                  id="phone"
-                  value={userData?.mobileNumber}
-                  // onChange={(e) => setFormData(prev => ({ ...prev, phone: e.target.value }))}
-                  disabled
-                  className={!isEditing ? 'bg-gray-50' : ''}
-                />
+                <Label>Phone Number</Label>
+                <Input value={userData.mobileNumber} disabled />
               </div>
-
               <div>
-                <Label htmlFor="dob">Date of Birth</Label>
+                <Label>Date of Birth</Label>
                 <Input
-                  id="dob"
                   type="date"
                   value={formData.dateOfBirth}
                   onChange={(e) => setFormData(prev => ({ ...prev, dateOfBirth: e.target.value }))}
                   disabled={!isEditing}
-                  className={!isEditing ? 'bg-gray-50' : ''}
                 />
               </div>
-
               <div>
-                <Label htmlFor="gender">Gender</Label>
+                <Label>Gender</Label>
                 {isEditing ? (
                   <select
-                    id="gender"
                     value={formData.gender}
                     onChange={(e) => setFormData(prev => ({ ...prev, gender: e.target.value }))}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:border-blue-500"
+                    className="w-full border border-gray-300 rounded-md p-2"
                   >
                     <option value="Male">Male</option>
                     <option value="Female">Female</option>
@@ -741,30 +787,23 @@ function EditProfileScreen({ onBack, userData }: { onBack: () => void; userData:
                     <option value="Prefer not to say">Prefer not to say</option>
                   </select>
                 ) : (
-                  <Input
-                    value={formData.gender}
-                    disabled
-                    className="bg-gray-50"
-                  />
+                  <Input value={formData.gender} disabled />
                 )}
               </div>
             </div>
           </CardContent>
         </Card>
 
-        {/* Emergency Contact */}
+        {/* --- Emergency Contact --- */}
         <Card>
           <CardContent className="p-6">
             <h3 className="text-lg font-medium mb-4">Emergency Contact</h3>
             <div>
-              <Label htmlFor="emergency">Emergency Contact Number</Label>
+              <Label>Emergency Contact Number</Label>
               <Input
-                id="emergency"
                 value={formData.emergencyContact}
                 onChange={(e) => setFormData(prev => ({ ...prev, emergencyContact: e.target.value }))}
                 disabled={!isEditing}
-                className={!isEditing ? 'bg-gray-50' : ''}
-                placeholder="+91 98765 43210"
               />
               <p className="text-xs text-gray-500 mt-1">
                 This contact will be notified in case of emergency during delivery
@@ -776,6 +815,7 @@ function EditProfileScreen({ onBack, userData }: { onBack: () => void; userData:
     </div>
   );
 }
+
 
 // Wallet & Payments Screen
 function WalletPaymentsScreen({ onBack, walletBalance }: { onBack: () => void; walletBalance: number }) {
