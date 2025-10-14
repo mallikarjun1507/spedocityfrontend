@@ -213,6 +213,7 @@ export function ProfileScreen() {
 
     if (res.data.success) {
       toast.success(res.data.message);
+      fetchAddresses()
     } else {
       toast.error(res.data.message);
     }
