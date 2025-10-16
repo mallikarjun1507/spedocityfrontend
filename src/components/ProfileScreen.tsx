@@ -195,43 +195,43 @@ export function ProfileScreen() {
     return;
   }
 
-  const newAddress = { 
-    userId: userId,
+  const payload = {
+    userId,
     latitude: selectedLocation.lat,
-    langitude: selectedLocation.lng,
-    address: selectedLocation.address 
+     langitude: selectedLocation.lng,
+    user_address: selectedLocation.address,
   };
 
   try {
-    const res = await axios.post(`${URL}user-address`, newAddress, {
-      headers: {
-        Authorization: userData?.authToken
-      }
-    });
+    let res;
 
-    console.log(res, "response");
+    if (editingAddress) {
+      // 🔹 Update existing address
+      res = await axios.put(`${URL}updateUser-address/${editingAddress.id}`, payload, {
+        headers: { Authorization: userData?.authToken },
+      });
+    } else {
+      // 🆕 Add new address
+      res = await axios.post(`${URL}user-address`, payload, {
+        headers: { Authorization: userData?.authToken },
+      });
+    }
 
     if (res.data.success) {
       toast.success(res.data.message);
+      fetchAddresses();
     } else {
       toast.error(res.data.message);
     }
-    //getAddresses
-  } catch (err) {
+  } catch (err: any) {
     console.error("Error saving address:", err);
-
-    // 👇 Handle error responses with custom message from backend
-    if (err.response && err.response.data && err.response.data.message) {
-      toast.error(err.response.data.message);
-    } else {
-      toast.error("Error saving address");
-    }
+    toast.error(err.response?.data?.message || "Error saving address");
   }
 
   setShowMap(false);
   setEditingAddress(null);
   setSelectedLocation(null);
-    };
+};
     const handleDeleteAddress = async (id: number) => {
       try {
         const res = await axios.delete(`${URL}deleteUser-address/${id}`, {
@@ -256,6 +256,25 @@ export function ProfileScreen() {
       setSelectedLocation(null);
       setShowMap(true);
     };
+const handleEditAddress = (addr: any) => {
+  setEditingAddress(addr);
+
+  // Prefill selected location for map and input
+  setSelectedLocation({
+    lat: addr.latitude,
+    lng: addr.langitude,
+    address: addr.user_address,
+  });
+
+  setShowMap(true);
+
+  // Wait for modal to render, then prefill search input
+  setTimeout(() => {
+    if (inputRef.current) {
+      inputRef.current.value = addr.user_address; // ✅ prefill search box
+    }
+  }, 100);
+};
 
 
     return (
@@ -306,7 +325,7 @@ export function ProfileScreen() {
           variant="outline"
           size="icon"
           className="h-9 w-9 cursor-pointer rounded-full bg-blue-50 text-blue-600 hover:bg-red-600 hover:text-white transition"
-          // onClick={() => handleEdit(addr)}
+           onClick={() => handleEditAddress(addr)} 
         >
           <Edit3 className="w-4 h-4" />
         </Button>
