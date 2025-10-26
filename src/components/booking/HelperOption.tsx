@@ -1,14 +1,10 @@
 import { Minus, Plus, Users } from 'lucide-react';
 import { motion } from 'motion/react';
 import { useState } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { Badge } from '../ui/badge';
 import { Button } from '../ui/button';
 import { Card, CardContent } from '../ui/card';
-
-interface HelperOptionProps {
-  onNext: (helpers: number) => void;
-  onBack: () => void;
-}
 
 const helperOptions = [
   {
@@ -34,12 +30,36 @@ const helperOptions = [
   }
 ];
 
-export function HelperOption({ onNext, onBack }: HelperOptionProps) {
-  const [selectedHelpers, setSelectedHelpers] = useState<number>(0);
+export function HelperOption() {
+  // ✅ Added data transfer logic
+  const location = useLocation();
+  const navigate = useNavigate();
+ // ✅ Get all passed data including pickup & dropoff
+  const { vehicle, item, pickup, dropoff } = location.state || {};
 
-  const handleNext = () => {
-    onNext(selectedHelpers);
+  const [selectedHelpers, setSelectedHelpers] = useState<number>(0);
+   
+
+ // Updated handleNext to include vehicle, item, helper, pickup, dropoff
+const handleNext = () => {
+  const helperData = {
+    vehicle,
+    item,
+    pickup,     // ✅ add pickup
+    dropoff,    // ✅ add dropoff
+    helper: {
+      required: selectedHelpers > 0,
+      count: selectedHelpers,
+      extraCharge: selectedHelpers * 50
+    }
   };
+
+  // Save to localStorage (optional)
+  localStorage.setItem('helperData', JSON.stringify(helperData));
+
+  // Navigate to schedule page with all collected data
+  navigate('/schedule', { state: helperData });
+};
 
   const selectHelpers = (count: number) => {
     setSelectedHelpers(count);
@@ -77,10 +97,11 @@ export function HelperOption({ onNext, onBack }: HelperOptionProps) {
                   transition={{ duration: 0.3, delay: 0.1 * index }}
                 >
                   <Card
-                    className={`cursor-pointer transition-all ${selectedHelpers === option.count
+                    className={`cursor-pointer transition-all ${
+                      selectedHelpers === option.count
                         ? 'border-blue-500 bg-blue-50 shadow-md'
                         : 'border-gray-200 hover:border-gray-300 hover:shadow-sm'
-                      }`}
+                    }`}
                     onClick={() => selectHelpers(option.count)}
                   >
                     <CardContent className="p-4">
@@ -134,7 +155,8 @@ export function HelperOption({ onNext, onBack }: HelperOptionProps) {
                 <div className="text-center">
                   <h3 className="text-sm mb-2">Need more helpers?</h3>
                   <div className="flex items-center justify-center gap-3">
-                    <Button className='cursor-pointer'
+                    <Button
+                      className="cursor-pointer"
                       variant="outline"
                       size="sm"
                       onClick={() => setSelectedHelpers(Math.max(0, selectedHelpers - 1))}
@@ -142,7 +164,8 @@ export function HelperOption({ onNext, onBack }: HelperOptionProps) {
                       <Minus className="w-4 h-4" />
                     </Button>
                     <span className="w-12 text-center">{selectedHelpers}</span>
-                    <Button className='cursor-pointer'
+                    <Button
+                      className="cursor-pointer"
                       variant="outline"
                       size="sm"
                       onClick={() => setSelectedHelpers(Math.min(5, selectedHelpers + 1))}
@@ -188,15 +211,21 @@ export function HelperOption({ onNext, onBack }: HelperOptionProps) {
                 <div className="space-y-2">
                   <div>
                     <p className="text-xs font-medium text-gray-700">What do helpers assist with?</p>
-                    <p className="text-xs text-gray-600">Loading, unloading, carrying items, and basic packing support</p>
+                    <p className="text-xs text-gray-600">
+                      Loading, unloading, carrying items, and basic packing support
+                    </p>
                   </div>
                   <div>
                     <p className="text-xs font-medium text-gray-700">Are helpers insured?</p>
-                    <p className="text-xs text-gray-600">Yes, all helpers are covered under our comprehensive insurance policy</p>
+                    <p className="text-xs text-gray-600">
+                      Yes, all helpers are covered under our comprehensive insurance policy
+                    </p>
                   </div>
                   <div>
                     <p className="text-xs font-medium text-gray-700">Can I change helper count later?</p>
-                    <p className="text-xs text-gray-600">You can modify before pickup, subject to availability</p>
+                    <p className="text-xs text-gray-600">
+                      You can modify before pickup, subject to availability
+                    </p>
                   </div>
                 </div>
               </CardContent>
@@ -215,22 +244,32 @@ export function HelperOption({ onNext, onBack }: HelperOptionProps) {
           <span className="text-sm">
             {selectedHelpers === 0
               ? 'No helper'
-              : `${selectedHelpers} helper${selectedHelpers > 1 ? 's' : ''}`
-            }
+              : `${selectedHelpers} helper${selectedHelpers > 1 ? 's' : ''}`}
             {selectedHelpers > 0 && (
-              <span className="text-green-600 ml-2">
-                +₹{selectedHelpers * 50}
-              </span>
+              <span className="text-green-600 ml-2">+₹{selectedHelpers * 50}</span>
             )}
           </span>
         </div>
-        <Button
-          onClick={handleNext}
-          className="w-full bg-blue-600 hover:bg-blue-700 cursor-pointer"
-        >
-          Continue
-        </Button>
+       <div style={{ padding: "16px", borderTop: "1px solid #ddd" }}>
+  <button
+    onClick={handleNext}
+    style={{
+      width: "100%",
+      padding: "12px",
+      background: "#3b82f6", // blue color
+      color: "#fff",
+      border: "none",
+      borderRadius: "8px",
+      cursor: "pointer",
+    }}
+  >
+    Continue
+  </button>
+</div>
+
       </div>
     </div>
   );
 }
+
+export default HelperOption;

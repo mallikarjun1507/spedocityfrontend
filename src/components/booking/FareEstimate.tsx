@@ -1,19 +1,20 @@
-import { Info, Shield } from 'lucide-react';
-import { motion } from 'motion/react';
-import { useState } from 'react';
-import { Button } from '../ui/button';
-import { Card, CardContent } from '../ui/card';
-import { Label } from '../ui/label';
-import { Separator } from '../ui/separator';
-import { Switch } from '../ui/switch';
+import { Info, Shield } from "lucide-react";
+import { motion } from "motion/react";
+import { useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom"; // ✅ Added code
+import { Button } from "../ui/button";
+import { Card, CardContent } from "../ui/card";
+import { Label } from "../ui/label";
+import { Separator } from "../ui/separator";
+import { Switch } from "../ui/switch";
 
 interface FareEstimateProps {
-  pickup: string;
-  dropoff: string;
-  service: string;
-  helpers: number;
-  onNext: (fareData: FareData) => void;
-  onBack: () => void;
+  pickup?: string;
+  dropoff?: string;
+  service?: string;
+  helpers?: number;
+  onNext?: (fareData: FareData) => void;
+  onBack?: () => void;
 }
 
 interface FareData {
@@ -27,20 +28,60 @@ interface FareData {
   estimatedTime: string;
 }
 
-export function FareEstimate({ pickup, dropoff, service, helpers, onNext, onBack }: FareEstimateProps) {
+const FareEstimate: React.FC<FareEstimateProps> = ({
+  pickup,
+  dropoff,
+  service,
+  helpers = 0,
+}) => {
   const [hasInsurance, setHasInsurance] = useState(false);
 
-  // Mock calculations - in real app, this would come from API
+  // ✅ Added for data transfer
+  const location = useLocation(); // ✅ Added
+  const navigate = useNavigate(); // ✅ Added
+  const { vehicle, item, helper, schedule } = location.state || {}; // ✅ Added
+
+  // ✅ Added fallback to handle values from previous pages
+  const currentPickup = pickup || location.state?.pickup || "Not Provided";
+  const currentDropoff = dropoff || location.state?.dropoff || "Not Provided";
+  const currentHelpers = helpers || (helper?.required ? 1 : 0);
+  const currentService = service || vehicle?.name || "Vehicle";
+
+  // Mock calculations
   const estimatedDistance = 12.5;
   const estimatedTime = "25-35 mins";
-  const basePrice = service === 'bike' ? 49 : service === 'auto' ? 89 : service === 'mini-truck' ? 199 : service === 'packers' ? 999 : 1299;
-  const distancePrice = Math.round(estimatedDistance * (service === 'bike' ? 3 : service === 'auto' ? 5 : 8));
-  const helperPrice = helpers * 50;
-  const insurancePrice = hasInsurance ? Math.round((basePrice + distancePrice) * 0.05) : 0;
-  const totalPrice = basePrice + distancePrice + helperPrice + insurancePrice;
+  const basePrice =
+    currentService.toLowerCase().includes("bike")
+      ? 49
+      : currentService.toLowerCase().includes("auto")
+      ? 89
+      : currentService.toLowerCase().includes("truck")
+      ? 199
+      : 129;
+  const distancePrice = Math.round(
+    estimatedDistance *
+      (currentService.toLowerCase().includes("bike")
+        ? 3
+        : currentService.toLowerCase().includes("auto")
+        ? 5
+        : 8)
+  );
+  const helperPrice = currentHelpers * 50;
+  const insurancePrice = hasInsurance
+    ? Math.round((basePrice + distancePrice) * 0.05)
+    : 0;
+  const totalPrice =
+    basePrice + distancePrice + helperPrice + insurancePrice;
 
+  // ✅ Updated handleNext with state passing logic
   const handleNext = () => {
-    onNext({
+    const finalData = {
+      vehicle,
+      item,
+      helper,
+      schedule,
+      pickup: currentPickup,
+      dropoff: currentDropoff,
       basePrice,
       distancePrice,
       helperPrice,
@@ -48,19 +89,14 @@ export function FareEstimate({ pickup, dropoff, service, helpers, onNext, onBack
       totalPrice,
       hasInsurance,
       estimatedDistance,
-      estimatedTime
-    });
-  };
-
-  const getServiceName = (serviceId: string) => {
-    const serviceMap: { [key: string]: string } = {
-      'bike': 'Bike Delivery',
-      'auto': 'Auto Rickshaw',
-      'mini-truck': 'Mini Truck',
-      'packers': 'Packers & Movers',
-      'heavy-loader': 'Heavy Loader'
+      estimatedTime,
     };
-    return serviceMap[serviceId] || serviceId;
+
+    // Pass data to Payment page
+    navigate("/paymentpage", { state: finalData });
+
+    // Optional: store locally
+    localStorage.setItem("fareData", JSON.stringify(finalData));
   };
 
   return (
@@ -80,7 +116,7 @@ export function FareEstimate({ pickup, dropoff, service, helpers, onNext, onBack
           transition={{ duration: 0.5 }}
           className="space-y-6"
         >
-          {/* Route Information */}
+          {/* Route Details */}
           <Card className="bg-white border-gray-200">
             <CardContent className="p-4">
               <h3 className="text-base mb-4">Route Details</h3>
@@ -94,11 +130,11 @@ export function FareEstimate({ pickup, dropoff, service, helpers, onNext, onBack
                   <div className="flex-1 space-y-4">
                     <div>
                       <p className="text-xs text-gray-500">From</p>
-                      <p className="text-sm">{pickup}</p>
+                      <p className="text-sm">{currentPickup}</p>
                     </div>
                     <div>
                       <p className="text-xs text-gray-500">To</p>
-                      <p className="text-sm">{dropoff}</p>
+                      <p className="text-sm">{currentDropoff}</p>
                     </div>
                   </div>
                 </div>
@@ -116,7 +152,7 @@ export function FareEstimate({ pickup, dropoff, service, helpers, onNext, onBack
                   </div>
                   <div>
                     <p className="text-xs text-gray-500">Service</p>
-                    <p className="text-sm">{getServiceName(service)}</p>
+                    <p className="text-sm">{currentService}</p>
                   </div>
                 </div>
               </div>
@@ -132,8 +168,12 @@ export function FareEstimate({ pickup, dropoff, service, helpers, onNext, onBack
                     <Shield className="w-5 h-5 text-blue-600" />
                   </div>
                   <div>
-                    <Label htmlFor="insurance" className="text-sm">Delivery Insurance</Label>
-                    <p className="text-xs text-gray-600">Protect your items during delivery</p>
+                    <Label htmlFor="insurance" className="text-sm">
+                      Delivery Insurance
+                    </Label>
+                    <p className="text-xs text-gray-600">
+                      Protect your items during delivery
+                    </p>
                   </div>
                 </div>
                 <Switch
@@ -146,7 +186,7 @@ export function FareEstimate({ pickup, dropoff, service, helpers, onNext, onBack
               {hasInsurance && (
                 <motion.div
                   initial={{ opacity: 0, height: 0 }}
-                  animate={{ opacity: 1, height: 'auto' }}
+                  animate={{ opacity: 1, height: "auto" }}
                   transition={{ duration: 0.3 }}
                   className="bg-blue-50 rounded-lg p-3 mt-3"
                 >
@@ -173,13 +213,17 @@ export function FareEstimate({ pickup, dropoff, service, helpers, onNext, onBack
                 </div>
 
                 <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-600">Distance ({estimatedDistance} km)</span>
+                  <span className="text-sm text-gray-600">
+                    Distance ({estimatedDistance} km)
+                  </span>
                   <span className="text-sm">₹{distancePrice}</span>
                 </div>
 
-                {helpers > 0 && (
+                {currentHelpers > 0 && (
                   <div className="flex items-center justify-between">
-                    <span className="text-sm text-gray-600">Helper charges ({helpers} helper{helpers > 1 ? 's' : ''})</span>
+                    <span className="text-sm text-gray-600">
+                      Helper charges ({currentHelpers})
+                    </span>
                     <span className="text-sm">₹{helperPrice}</span>
                   </div>
                 )}
@@ -195,13 +239,15 @@ export function FareEstimate({ pickup, dropoff, service, helpers, onNext, onBack
 
                 <div className="flex items-center justify-between">
                   <span className="text-base">Total Amount</span>
-                  <span className="text-lg text-green-600">₹{totalPrice}</span>
+                  <span className="text-lg text-green-600">
+                    ₹{totalPrice}
+                  </span>
                 </div>
               </div>
             </CardContent>
           </Card>
 
-          {/* Additional Information */}
+          {/* Important Notes */}
           <Card className="bg-yellow-50 border-yellow-200">
             <CardContent className="p-4">
               <h3 className="text-sm mb-2">💡 Important Notes</h3>
@@ -216,19 +262,32 @@ export function FareEstimate({ pickup, dropoff, service, helpers, onNext, onBack
         </motion.div>
       </div>
 
-      {/* Continue Button */}
+      {/* Bottom Button */}
       <div className="fixed bottom-0 left-0 right-0 p-6 bg-white border-t">
         <div className="flex items-center justify-between mb-3">
           <span className="text-sm text-gray-600">Estimated Total:</span>
           <span className="text-lg text-green-600">₹{totalPrice}</span>
         </div>
-        <Button
-          onClick={handleNext}
-          className="w-full bg-blue-600 hover:bg-blue-700 cursor-pointer"
-        >
-          Proceed to Payment
-        </Button>
+         <div style={{ padding: "16px", borderTop: "1px solid #ddd" }}>
+          <button
+            onClick={handleNext}
+          
+            style={{
+              width: "100%",
+              padding: "12px",
+              background: "#3b82f6", // blue color
+              color: "#fff",
+              border: "none",
+              borderRadius: "8px",
+              cursor: "pointer",
+            }}
+          >
+            Continue
+          </button>
+        </div>
       </div>
     </div>
   );
-}
+};
+
+export default FareEstimate;

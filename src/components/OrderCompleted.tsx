@@ -10,6 +10,7 @@ import {
 } from 'lucide-react';
 import { motion } from 'motion/react';
 import { useState } from 'react';
+import { useNavigate } from "react-router-dom";
 import { Badge } from './ui/badge';
 import { Button } from './ui/button';
 import { Card, CardContent } from './ui/card';
@@ -30,6 +31,7 @@ export function OrderCompleted({ orderId, amount, onBack, onDone, onTrackDeliver
   const [comment, setComment] = useState('');
   const [tipAmount, setTipAmount] = useState(0);
   const [showTipOptions, setShowTipOptions] = useState(false);
+  const navigate = useNavigate();
 
   const tipOptions = [10, 20, 50, 100];
 
@@ -40,13 +42,14 @@ export function OrderCompleted({ orderId, amount, onBack, onDone, onTrackDeliver
     link.download = `spedocity-receipt-${orderId}.pdf`;
     link.click();
   };
-
-  const handleSubmitRating = () => {
+ const handleSubmitRating = () => {
     // Submit rating and feedback
     console.log('Rating submitted:', { rating, comment, tipAmount });
-    onDone();
-  };
+    onDone?.(); // call the passed callback if exists
 
+    // ✅ Navigate to dashboard after submitting
+    navigate('/dashboard');
+  };
   const formatCurrency = (amount: number) => {
     return `₹${amount}`;
   };
@@ -313,7 +316,7 @@ export function OrderCompleted({ orderId, amount, onBack, onDone, onTrackDeliver
       </div>
 
       {/* Submit Button */}
-      <div className="fixed bottom-0 left-0 right-0 p-6 bg-white border-t">
+       <div className="fixed bottom-0 left-0 right-0 p-6 bg-white border-t">
         <Button
           onClick={handleSubmitRating}
           className="w-full bg-blue-600 hover:bg-blue-700 cursor-pointer"

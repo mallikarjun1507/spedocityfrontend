@@ -1,4 +1,4 @@
-import { Bell, ChevronLeft, ChevronRight, Home, Package, User, Wallet } from 'lucide-react';
+import { Bell, Home, Package, User, Wallet } from 'lucide-react';
 import { AnimatePresence, motion } from 'motion/react';
 
 interface SidebarProps {
@@ -51,19 +51,7 @@ export function Sidebar({ activeTab, onTabChange, expanded, onToggle }: SidebarP
           </AnimatePresence>
         </div>
 
-        {/* ✅ Fixed Toggle Button: always visible */}
-        <motion.button
-          onClick={onToggle}
-          whileHover={{ scale: 1.1 }}
-          whileTap={{ scale: 0.9 }}
-          className="w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition-colors"
-        >
-          {expanded ? (
-            <ChevronLeft className="w-4 h-4 text-gray-600" />
-          ) : (
-            <ChevronRight className="w-4 h-4 text-gray-600" />
-          )}
-        </motion.button>
+
       </div>
 
       {/* Navigation Items */}
@@ -154,12 +142,6 @@ export function Sidebar({ activeTab, onTabChange, expanded, onToggle }: SidebarP
                     )}
                   </AnimatePresence>
 
-                  {/* Tooltip when collapsed */}
-                  {!expanded && (
-                    <div className="absolute left-full ml-3 px-3 py-2 bg-gray-900 text-black text-sm rounded-lg opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity duration-200 whitespace-nowrap z-50">
-                      <div className="absolute right-full top-1/2 -translate-y-1/2 border-4 border-transparent border-r-gray-900"></div>
-                    </div>
-                  )}
                 </motion.button>
               </motion.div>
             );
@@ -175,14 +157,7 @@ export function Sidebar({ activeTab, onTabChange, expanded, onToggle }: SidebarP
             whileTap={{ scale: 0.95 }}
             className="w-8 h-8 bg-gradient-to-br from-purple-500 to-pink-500 rounded-xl flex items-center justify-center cursor-pointer group flex-shrink-0"
           >
-            <div className="w-2 h-2 bg-white rounded-full"></div>
 
-            {!expanded && (
-              <div className="absolute left-full ml-3 px-2 py-1 bg-gray-900 text-black text-xs rounded-md opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity duration-200 whitespace-nowrap z-50">
-                Settings
-                <div className="absolute right-full top-1/2 -translate-y-1/2 border-4 border-transparent border-r-gray-900"></div>
-              </div>
-            )}
           </motion.div>
 
           <AnimatePresence>
