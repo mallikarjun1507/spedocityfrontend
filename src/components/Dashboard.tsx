@@ -136,6 +136,8 @@ export function Dashboard({ onStartBooking, onTrackOrder, currentOrderId }: Dash
     setViaLocations(prev => prev.filter(loc => loc.id !== id));
   };
 
+
+
   return (
     <div className="flex flex-col h-full bg-gray-50">
       {/* Header */}

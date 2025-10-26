@@ -4,7 +4,6 @@ import {
   useJsApiLoader
 } from "@react-google-maps/api";
 import axios from 'axios';
-import API from "../api/axiosInstance";
 import {
   ArrowLeft,
   Camera,
@@ -28,18 +27,18 @@ import {
   X
 } from 'lucide-react';
 import { motion } from 'motion/react';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { useAuth } from '../contexts/AuthContext';
 import { URL } from "../URL";
+import { getUser } from "../utils/utils";
 import { Avatar, AvatarFallback } from './ui/avatar';
 import { Badge } from './ui/badge';
 import { Button } from './ui/button';
 import { Card, CardContent } from './ui/card';
 import { Input } from './ui/input';
 import { Label } from './ui/label';
-import { getUser } from "../utils/utils";
 
 // <ToastContainer />
 const menuItems = [
@@ -166,72 +165,72 @@ export function ProfileScreen() {
 
       }
     }, [isLoaded, map]);
-      const fetchAddresses = async () => {
-    try {
-      const res = await axios.get(`${URL}getUser-address`, {
-        params: { userId },
-        headers: {
-          Authorization: userData?.authToken
+    const fetchAddresses = async () => {
+      try {
+        const res = await axios.get(`${URL}getUser-address`, {
+          params: { userId },
+          headers: {
+            Authorization: userData?.authToken
+          }
+        });
+        setAddresses(res.data.data);
+      } catch (err) {
+        console.error("Error fetching addresses:", err);
+        if (err.response && err.response.data?.message) {
+          toast.error(err.response.data.message);
+        } else {
+          toast.error("Failed to load addresses");
         }
-      });
-      setAddresses(res.data.data);
-    } catch (err) {
-      console.error("Error fetching addresses:", err);
-      if (err.response && err.response.data?.message) {
-        toast.error(err.response.data.message);
-      } else {
-        toast.error("Failed to load addresses");
       }
-    }
-  };
+    };
     useEffect(() => {
 
 
-  fetchAddresses();
+      fetchAddresses();
     }, [userId, userData?.authToken]); // ✅ add deps
     const handleSaveAddress = async () => {
-  if (!selectedLocation) {
-    toast.error("Please select a location");
-    return;
-  }
+      if (!selectedLocation) {
+        toast.error("Please select a location");
+        return;
+      }
 
-  const payload = {
-    userId,
-    latitude: selectedLocation.lat,
-     langitude: selectedLocation.lng,
-    user_address: selectedLocation.address,
-  };
+      const payload = {
+        userId,
+        latitude: selectedLocation.lat,
+        langitude: selectedLocation.lng,
+        user_address: selectedLocation.address,
+      };
 
-  try {
-    let res;
+      try {
+        let res;
 
-    if (editingAddress) {
-      // 🔹 Update existing address
-      res = await axios.put(`${URL}updateUser-address/${editingAddress.id}`, payload, {
-        headers: { Authorization: userData?.authToken },
-      });
-    } else {
-      // 🆕 Add new address
-      res = await axios.post(`${URL}user-address`, payload, {
-        headers: { Authorization: userData?.authToken },
-      });
-    }
+        if (editingAddress) {
+          // 🔹 Update existing address
+          res = await axios.put(`${URL}updateUser-address/${editingAddress.id}`, payload, {
+            headers: { Authorization: userData?.authToken },
+          });
+        } else {
+          // 🆕 Add new address
+          res = await axios.post(`${URL}user-address`, payload, {
+            headers: { Authorization: userData?.authToken },
+          });
+        }
 
-    if (res.data.success) {
-      toast.success(res.data.message);
-      fetchAddresses();
-    } else {
-      toast.error(res.data.message);
-    }
-  } catch (err: any) {
-    console.error("Error saving address:", err);
-    toast.error(err.response?.data?.message || "Error saving address");
-  }
+        if (res.data.success) {
+          toast.success(res.data.message);
+          fetchAddresses();
+        } else {
+          toast.error(res.data.message);
+        }
+      } catch (err: any) {
+        console.error("Error saving address:", err);
+        toast.error(err.response?.data?.message || "Error saving address");
+      }
 
-  setShowMap(false);
-  setEditingAddress(null);
-  setSelectedLocation(null);
-};
+      setShowMap(false);
+      setEditingAddress(null);
+      setSelectedLocation(null);
+    };
     const handleDeleteAddress = async (id: number) => {
       try {
         const res = await axios.delete(`${URL}deleteUser-address/${id}`, {
@@ -239,12 +238,12 @@ export function ProfileScreen() {
             Authorization: userData?.authToken
           }
         });
-        if(res.data.success){
+        if (res.data.success) {
           toast.success(res.data.message);
 
           fetchAddresses()
+        }
       }
-    }
       catch (err) {
         console.error("Error deleting address:", err);
       }
@@ -256,25 +255,25 @@ export function ProfileScreen() {
       setSelectedLocation(null);
       setShowMap(true);
     };
-const handleEditAddress = (addr: any) => {
-  setEditingAddress(addr);
+    const handleEditAddress = (addr: any) => {
+      setEditingAddress(addr);
 
-  // Prefill selected location for map and input
-  setSelectedLocation({
-    lat: addr.latitude,
-    lng: addr.langitude,
-    address: addr.user_address,
-  });
+      // Prefill selected location for map and input
+      setSelectedLocation({
+        lat: addr.latitude,
+        lng: addr.langitude,
+        address: addr.user_address,
+      });
 
-  setShowMap(true);
+      setShowMap(true);
 
-  // Wait for modal to render, then prefill search input
-  setTimeout(() => {
-    if (inputRef.current) {
-      inputRef.current.value = addr.user_address; // ✅ prefill search box
-    }
-  }, 100);
-};
+      // Wait for modal to render, then prefill search input
+      setTimeout(() => {
+        if (inputRef.current) {
+          inputRef.current.value = addr.user_address; // ✅ prefill search box
+        }
+      }, 100);
+    };
 
 
     return (
@@ -299,49 +298,49 @@ const handleEditAddress = (addr: any) => {
 
         {/* Saved Address Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-  {addresses.map((addr) => (
-    <div
-      key={addr.id}
-      className="relative cursor-pointer bg-white border border-gray-100 rounded-2xl shadow-sm hover:shadow-lg transition-all p-5 flex flex-col justify-between"
-    >
-      {/* Location Header */}
-      <div className="flex items-start p-3 mt-1 gap-3">
-        <div className="flex-shrink-0 bg-blue-100 text-blue-600 rounded-full p-2 mt-1">
-          <MapPin className="w-5 h-5" />
-        </div>
-        <div>
-          <h3 className="font-semibold text-gray-900 text-base leading-snug">
-            {addr.user_address.split(',')[0] || 'Saved Address'}
-          </h3>
-          <p className="text-gray-500 text-sm mt-1 leading-relaxed">
-            {addr.user_address}
-          </p>
-        </div>
-      </div>
+          {addresses.map((addr) => (
+            <div
+              key={addr.id}
+              className="relative cursor-pointer bg-white border border-gray-100 rounded-2xl shadow-sm hover:shadow-lg transition-all p-5 flex flex-col justify-between"
+            >
+              {/* Location Header */}
+              <div className="flex items-start p-3 mt-1 gap-3">
+                <div className="flex-shrink-0 bg-blue-100 text-blue-600 rounded-full p-2 mt-1">
+                  <MapPin className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-gray-900 text-base leading-snug">
+                    {addr.user_address.split(',')[0] || 'Saved Address'}
+                  </h3>
+                  <p className="text-gray-500 text-sm mt-1 leading-relaxed">
+                    {addr.user_address}
+                  </p>
+                </div>
+              </div>
 
-      {/* Action Buttons */}
-      <div className="absolute   flex gap-2" style={{ right: '10px', top:'20px' }}>
-        <Button
-          variant="outline"
-          size="icon"
-          className="h-9 w-9 cursor-pointer rounded-full bg-blue-50 text-blue-600 hover:bg-red-600 hover:text-white transition"
-           onClick={() => handleEditAddress(addr)} 
-        >
-          <Edit3 className="w-4 h-4" />
-        </Button>
+              {/* Action Buttons */}
+              <div className="absolute   flex gap-2" style={{ right: '10px', top: '20px' }}>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="h-9 w-9 cursor-pointer rounded-full bg-blue-50 text-blue-600 hover:bg-red-600 hover:text-white transition"
+                  onClick={() => handleEditAddress(addr)}
+                >
+                  <Edit3 className="w-4 h-4" />
+                </Button>
 
-        <Button
-          variant="destructive"
-          size="icon"
-          className="h-9 w-9 cursor-pointer rounded-full bg-red-50 text-red-600 hover:bg-red-600 hover:text-white transition"
-          onClick={() => handleDeleteAddress(addr.id)}
-        >
-          <Trash2 className="w-4 h-4" />
-        </Button>
-      </div>
-    </div>
-  ))}
-</div>
+                <Button
+                  variant="destructive"
+                  size="icon"
+                  className="h-9 w-9 cursor-pointer rounded-full bg-red-50 text-red-600 hover:bg-red-600 hover:text-white transition"
+                  onClick={() => handleDeleteAddress(addr.id)}
+                >
+                  <Trash2 className="w-4 h-4" />
+                </Button>
+              </div>
+            </div>
+          ))}
+        </div>
 
 
         {/* Map Modal */}
@@ -989,14 +988,53 @@ function WalletPaymentsScreen({ onBack, walletBalance }: { onBack: () => void; w
     </div>
   );
 }
-
-// Referral Program Screen
+ //referral functionality
 function ReferralProgramScreen({ onBack }: { onBack: () => void }) {
-  const referralCode = "JOHN100";
-  const referralStats = {
-    totalReferrals: 5,
-    pendingRewards: 200,
-    earnedRewards: 500
+  const [referralCode, setReferralCode] = useState("");
+  const [referralStats, setReferralStats] = useState({
+    totalReferrals: 0,
+    pendingRewards: 0,
+    earnedRewards: 0,
+  });
+
+  // ✅ Fetch referral data from backend
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (!token) return;
+
+    axios
+      .get("http://localhost:5000/api/referral", {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      .then((res) => {
+        setReferralCode(res.data.referralCode || "N/A");
+        setReferralStats(res.data.stats || {});
+      })
+      .catch((err) => console.error("Error fetching referral data", err));
+  }, []);
+
+  // ✅ Send referral event / payload to backend
+  const handleShareReferral = async () => {
+    const token = localStorage.getItem("token");
+    if (!token) return alert("Please login first");
+
+    try {
+      const payload = {
+        referralCode, // e.g., "JOHN100"
+        action: "share", // or "inviteSent" etc.
+        timestamp: new Date().toISOString(),
+      };
+
+      const res = await axios.post("http://localhost:5000/api/referral", payload, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      console.log("Referral shared successfully:", res.data);
+      alert("Referral shared successfully!");
+    } catch (error) {
+      console.error("Error sharing referral:", error);
+      alert("Failed to share referral. Please try again.");
+    }
   };
 
   return (

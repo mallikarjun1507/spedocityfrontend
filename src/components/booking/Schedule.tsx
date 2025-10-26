@@ -1,17 +1,12 @@
 "use client";
 
-import { useState } from 'react';
+import { Calendar as CalendarIcon, ChevronRight, Clock } from 'lucide-react';
 import { motion } from 'motion/react';
-import { ArrowLeft, Clock, ChevronRight, Calendar as CalendarIcon } from 'lucide-react';
-import { Button } from '../ui/button';
-import { Card, CardContent } from '../ui/card';
+import { useState } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { Badge } from '../ui/badge';
 import { Calendar } from '../ui/calendar';
-
-interface ScheduleProps {
-  onNext: (schedule: ScheduleData) => void;
-  onBack: () => void;
-}
+import { Card, CardContent } from '../ui/card';
 
 interface ScheduleData {
   type: 'now' | 'later';
@@ -28,22 +23,36 @@ const timeSlots = [
   { id: '7-9', label: '7:00 PM - 9:00 PM', available: false }
 ];
 
-export function Schedule({ onNext, onBack }: ScheduleProps) {
+const Schedule = () => {
+  const navigate = useNavigate();
+
+  // ✅ Get all passed data including pickup & dropoff
+  const location = useLocation();
+  const { vehicle, item, pickup, dropoff, helper } = location.state || {};
+
   const [scheduleType, setScheduleType] = useState<'now' | 'later'>('now');
   const [selectedDate, setSelectedDate] = useState<Date | undefined>();
   const [selectedTimeSlot, setSelectedTimeSlot] = useState<string>('');
   const [showCalendar, setShowCalendar] = useState(false);
 
   const handleNext = () => {
-    if (scheduleType === 'now') {
-      onNext({ type: 'now' });
-    } else if (selectedDate && selectedTimeSlot) {
-      onNext({ 
-        type: 'later', 
-        date: selectedDate, 
-        timeSlot: selectedTimeSlot 
-      });
-    }
+    const scheduleData: ScheduleData =
+      scheduleType === 'now'
+        ? { type: 'now' }
+        : { type: 'later', date: selectedDate, timeSlot: selectedTimeSlot };
+
+    const fullData = {
+      vehicle,
+      item,
+      pickup,       // ✅ include pickup
+      dropoff,      // ✅ include dropoff
+      helper,
+      schedule: scheduleData,
+    };
+
+    navigate("/fare-estimate", {
+      state: fullData, // ✅ pass fullData to next page
+    });
   };
 
   const canContinue = () => {
@@ -52,11 +61,11 @@ export function Schedule({ onNext, onBack }: ScheduleProps) {
   };
 
   const formatDate = (date: Date) => {
-    return date.toLocaleDateString('en-US', { 
-      weekday: 'long', 
-      year: 'numeric', 
-      month: 'long', 
-      day: 'numeric' 
+    return date.toLocaleDateString('en-US', {
+      weekday: 'long',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
     });
   };
 
@@ -66,7 +75,6 @@ export function Schedule({ onNext, onBack }: ScheduleProps) {
       <div className="bg-white px-6 py-4 shadow-sm">
         <div className="flex items-center justify-center mb-4">
           <h1 className="text-lg">Schedule Delivery</h1>
-          <div className="w-16" />
         </div>
       </div>
 
@@ -83,12 +91,11 @@ export function Schedule({ onNext, onBack }: ScheduleProps) {
             <h2 className="text-lg">When do you need delivery?</h2>
 
             {/* Now Option */}
-            <Card 
-              className={`cursor-pointer transition-all ${
-                scheduleType === 'now' 
-                  ? 'border-blue-500 bg-blue-50 shadow-md' 
-                  : 'border-gray-200 hover:border-gray-300'
-              }`}
+            <Card
+              className={`cursor-pointer transition-all ${scheduleType === 'now'
+                ? 'border-blue-500 bg-blue-50 shadow-md'
+                : 'border-gray-200 hover:border-gray-300'
+                }`}
               onClick={() => {
                 setScheduleType('now');
                 setShowCalendar(false);
@@ -108,7 +115,9 @@ export function Schedule({ onNext, onBack }: ScheduleProps) {
                         Instant
                       </Badge>
                     </div>
-                    <p className="text-sm text-gray-600">Pickup within 15-30 minutes</p>
+                    <p className="text-sm text-gray-600">
+                      Pickup within 15-30 minutes
+                    </p>
                   </div>
                   <ChevronRight className="w-5 h-5 text-gray-400" />
                 </div>
@@ -116,12 +125,11 @@ export function Schedule({ onNext, onBack }: ScheduleProps) {
             </Card>
 
             {/* Later Option */}
-            <Card 
-              className={`cursor-pointer transition-all ${
-                scheduleType === 'later' 
-                  ? 'border-blue-500 bg-blue-50 shadow-md' 
-                  : 'border-gray-200 hover:border-gray-300'
-              }`}
+            <Card
+              className={`cursor-pointer transition-all ${scheduleType === 'later'
+                ? 'border-blue-500 bg-blue-50 shadow-md'
+                : 'border-gray-200 hover:border-gray-300'
+                }`}
               onClick={() => {
                 setScheduleType('later');
                 setShowCalendar(true);
@@ -136,7 +144,9 @@ export function Schedule({ onNext, onBack }: ScheduleProps) {
                   </div>
                   <div className="flex-1">
                     <h3 className="text-base mb-1">Schedule for Later</h3>
-                    <p className="text-sm text-gray-600">Choose date and time slot</p>
+                    <p className="text-sm text-gray-600">
+                      Choose date and time slot
+                    </p>
                   </div>
                   <ChevronRight className="w-5 h-5 text-gray-400" />
                 </div>
@@ -177,7 +187,7 @@ export function Schedule({ onNext, onBack }: ScheduleProps) {
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.3 }}
-                  className='space-y-4 max-h-[400px] overflow-y-auto pr-2'
+                  className="space-y-4 max-h-[400px] overflow-y-auto pr-2"
                 >
                   <h3 className="text-base mb-2">Select Time Slot</h3>
                   <p className="text-sm text-gray-600 mb-3">
@@ -187,20 +197,24 @@ export function Schedule({ onNext, onBack }: ScheduleProps) {
                     {timeSlots.map((slot) => (
                       <Card
                         key={slot.id}
-                        className={`cursor-pointer transition-all ${
-                          !slot.available 
-                            ? 'opacity-50 cursor-not-allowed bg-gray-100'
-                            : selectedTimeSlot === slot.id
-                              ? 'border-blue-500 bg-blue-50'
-                              : 'border-gray-200 hover:border-gray-300'
-                        }`}
-                        onClick={() => slot.available && setSelectedTimeSlot(slot.id)}
+                        className={`cursor-pointer transition-all ${!slot.available
+                          ? 'opacity-50 cursor-not-allowed bg-gray-100'
+                          : selectedTimeSlot === slot.id
+                            ? 'border-blue-500 bg-blue-50'
+                            : 'border-gray-200 hover:border-gray-300'
+                          }`}
+                        onClick={() =>
+                          slot.available && setSelectedTimeSlot(slot.id)
+                        }
                       >
                         <CardContent className="p-2">
                           <div className="flex items-center justify-between">
                             <span className="text-sm">{slot.label}</span>
                             {!slot.available ? (
-                              <Badge variant="secondary" className="bg-red-100 text-red-700 text-xs">
+                              <Badge
+                                variant="secondary"
+                                className="bg-red-100 text-red-700 text-xs"
+                              >
                                 Unavailable
                               </Badge>
                             ) : selectedTimeSlot === slot.id ? (
@@ -208,7 +222,10 @@ export function Schedule({ onNext, onBack }: ScheduleProps) {
                                 Selected
                               </Badge>
                             ) : (
-                              <Badge variant="secondary" className="bg-green-100 text-green-700 text-xs">
+                              <Badge
+                                variant="secondary"
+                                className="bg-green-100 text-green-700 text-xs"
+                              >
                                 Available
                               </Badge>
                             )}
@@ -246,7 +263,8 @@ export function Schedule({ onNext, onBack }: ScheduleProps) {
             </p>
           ) : selectedDate && selectedTimeSlot ? (
             <p className="text-sm text-gray-600 text-center">
-              Scheduled for {formatDate(selectedDate)} • {timeSlots.find(t => t.id === selectedTimeSlot)?.label}
+              Scheduled for {formatDate(selectedDate)} •{' '}
+              {timeSlots.find((t) => t.id === selectedTimeSlot)?.label}
             </p>
           ) : (
             <p className="text-sm text-gray-400 text-center">
@@ -254,14 +272,27 @@ export function Schedule({ onNext, onBack }: ScheduleProps) {
             </p>
           )}
         </div>
-        <Button
-          onClick={handleNext}
-          disabled={!canContinue()}
-          className="w-full bg-blue-600 hover:bg-blue-700 cursor-pointer"
-        >
-          Continue
-        </Button>
+        <div style={{ padding: "16px", borderTop: "1px solid #ddd" }}>
+          <button
+            onClick={handleNext}
+            disabled={!canContinue()}
+            style={{
+              width: "100%",
+              padding: "12px",
+              background: "#3b82f6", // blue color
+              color: "#fff",
+              border: "none",
+              borderRadius: "8px",
+              cursor: "pointer",
+            }}
+          >
+            Continue
+          </button>
+        </div>
+
       </div>
     </div>
   );
-}
+};
+
+export default Schedule;

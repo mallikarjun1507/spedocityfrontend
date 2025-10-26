@@ -2,13 +2,14 @@ import { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { PickupSelection } from './booking/PickupSelection';
 import { DropLocation } from './booking/DropLocation';
-import { ServiceSelection } from './booking/ServiceSelection';
-import { ItemDetails } from './booking/ItemDetails';
+
+import  ItemDetails  from './booking/ItemDetails';
 import { HelperOption } from './booking/HelperOption';
-import { Schedule } from './booking/Schedule';
-import { FareEstimate } from './booking/FareEstimate';
+import  Schedule  from './booking/Schedule';
+import  FareEstimate  from './booking/FareEstimate';
 import { PaymentPage } from './booking/PaymentPage';
 import { ConfirmBooking } from './booking/ConfirmBooking';
+import VehicleSelection from './booking/VehicleSelection';
 
 type BookingStep = 
   | 'pickup' 
@@ -143,15 +144,16 @@ export function BookingFlow({ onComplete, onCancel, initialPickup, initialDropof
           />
         );
       
-      case 'service':
-        return (
-          <ServiceSelection
-            pickup={bookingData.pickup}
-            dropoff={bookingData.dropoff}
-            onNext={(service) => handleStepComplete('service', { service })}
-            onBack={() => handleStepBack('service')}
-          />
-        );
+     case "service":
+  return (
+    <VehicleSelection
+      pickup={bookingData.pickup}
+      dropoff={bookingData.dropoff}
+      onNext={(selectedVehicle) => handleStepComplete("service", { selectedVehicle })}
+      onBack={() => handleStepBack("service")}
+    />
+  );
+
       
       case 'items':
         return (

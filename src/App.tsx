@@ -4,6 +4,16 @@ import { useState } from "react";
 import { Navigate, Route, BrowserRouter as Router, Routes, useNavigate } from "react-router-dom";
 import { ToastContainer } from 'react-toastify';
 import { ActiveOrder } from "./components/ActiveOrder";
+import { DropLocation } from "./components/booking/DropLocation";
+
+import { ConfirmBooking } from "./components/booking/ConfirmBooking";
+import FareEstimate from "./components/booking/FareEstimate";
+import { HelperOption } from "./components/booking/HelperOption";
+import ItemDetails from "./components/booking/ItemDetails";
+import { PaymentPage } from "./components/booking/PaymentPage";
+import Schedule from "./components/booking/Schedule";
+import { TrackDelivery } from "./components/booking/TrackDelivery";
+import VehicleSelection from "./components/booking/VehicleSelection";
 import { BookingFlow } from "./components/BookingFlow";
 import { BottomNavigation } from "./components/BottomNavigation";
 import { Dashboard } from "./components/Dashboard";
@@ -19,6 +29,9 @@ import { SplashScreen } from "./components/SplashScreen";
 import { useIsMobile } from "./components/ui/use-mobile";
 import { WalletScreen } from "./components/WalletScreen";
 import { AuthProvider, useAuth } from './contexts/AuthContext';
+
+
+
 
 type OnboardingStep = "splash" | "intro" | "auth" | "complete";
 type AppTab = "home" | "orders" | "wallet" | "notifications" | "profile";
@@ -148,6 +161,8 @@ function AppContent() {
               }
             />
 
+
+
             {/* Protected Routes */}
             <Route
               path="/booking"
@@ -157,6 +172,97 @@ function AppContent() {
                 </ProtectedRoute>
               }
             />
+
+            <Route
+              path="/drop-location"
+              element={
+                <ProtectedRoute>
+                  <DropLocation
+                    pickup="Bengaluru, Karnataka"
+                    onNext={(drop) => navigate("/vehicle-selection", { state: { pickup: "Bengaluru, Karnataka", drop } })}
+                    onBack={() => navigate("/itemdetails")}
+                  />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/drop-location"
+              element={
+                <ProtectedRoute>
+                  <DropLocation/>
+                </ProtectedRoute>
+              }
+            />
+
+
+            <Route
+              path="/vehicleselection"
+              element={
+                <ProtectedRoute>
+                  <VehicleSelection />
+                </ProtectedRoute>
+              }
+            />
+
+            <Route
+              path="/item-details" // ✅ Added route for your ItemDetails component
+              element={
+                <ProtectedRoute>
+                  <ItemDetails />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/helper-option"
+              element={
+                <ProtectedRoute>
+                  <HelperOption />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/schedule"
+              element={
+                <ProtectedRoute>
+                  <Schedule />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/fare-estimate"
+              element={
+                <ProtectedRoute>
+                  <FareEstimate />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/paymentpage"
+              element={
+                <ProtectedRoute>
+                  <PaymentPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/confirm-booking"
+              element={
+                <ProtectedRoute>
+                  <ConfirmBooking />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/track-delivery"
+              element={
+                <ProtectedRoute>
+                  <TrackDelivery />
+                </ProtectedRoute>
+              }
+            />
+
+
+
             <Route
               path="/active-order"
               element={
