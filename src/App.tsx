@@ -19,8 +19,10 @@ import { SplashScreen } from "./components/SplashScreen";
 import { useIsMobile } from "./components/ui/use-mobile";
 import { WalletScreen } from "./components/WalletScreen";
 import { AuthProvider, useAuth } from './contexts/AuthContext';
-import ShiftingService from "./components/ShiftingService"; // exact match to filename
-import ShiftingType from "./components/ShiftingType";
+import ShiftingService from "./components/ShiftingService"; 
+import ItemsManager from "./components/ItemsManagerPage";
+import Labor from "./components/Labor";
+import ScheduleOrder from "./components/ScheduleOrder";
 
 type OnboardingStep = "splash" | "intro" | "auth" | "complete";
 type AppTab = "home" | "orders" | "wallet" | "notifications" | "profile";
@@ -168,13 +170,15 @@ function AppContent() {
               }
             />
             <Route
-            path="/ShiftingType"
-            element={
-              <ProtectedRoute>
-                <ShiftingType/>
-              </ProtectedRoute>
-            }
-            />
+              path="/ItemsManager"
+              element = {
+                <ProtectedRoute>
+                  <ItemsManager />
+                </ProtectedRoute>
+              }
+              />
+            <Route path="/labor" element = {<ProtectedRoute>< Labor /></ProtectedRoute>}/>
+            <Route path="/scheduleorder" element = {<ProtectedRoute>< ScheduleOrder /></ProtectedRoute>}/>
             <Route
               path="/active-order"
               element={

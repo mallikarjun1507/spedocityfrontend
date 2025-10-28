@@ -10,6 +10,7 @@ interface ServiceCardProps {
   description: string;
   icon: React.FC;
   className?: string;
+  style?: React.CSSProperties;
   onClick?: () => void;
 }
 
@@ -61,7 +62,7 @@ const ServiceCard: React.FC<ServiceCardProps> = ({
     onKeyDown={(e) => {
       if (e.key === "Enter" || e.key === " ") onClick && onClick();
     }}
-    className={`flex items-center justify-between w-full bg-white rounded-3xl p-6 shadow-lg hover:shadow-xl transition transform hover:-translate-y-1 cursor-pointer border border-gray-200 ${className}`}
+    className={`flex items-center justify-between w-full bg-red rounded-3xl p-6 shadow-lg hover:shadow-xl transition transform hover:-translate-y-1 cursor-pointer border border-gray-200 paddingTop-30px ${className}`}
   >
     <div>
       <h3 className="text-xl font-semibold text-gray-900">{title}</h3>
@@ -84,12 +85,14 @@ const ShiftingService: React.FC = () => {
 
   const Subcards: React.CSSProperties = {
   display: "flex",
-  flexDirection: windowWidth < 600 ? "column" as "column" : "row" as "row",
-  height: windowWidth < 600 ? "auto" : "200px",
-  width: windowWidth < 600 ? "100%" : "800px",
+  justifyContent: 'center',
+  alignItems: 'center',
+  flexDirection: windowWidth < 600 ? "column" : "row",
+  height: '100%',
+  width: '100%',
   gap: "15px",
-  marginTop: "3px",
-  marginBottom: "10px",
+  marginTop: "0px",
+  marginBottom: "20px",
 };
 
   const sliderSettings = {
@@ -131,8 +134,8 @@ const ShiftingService: React.FC = () => {
         </Slider>
       </section>
 
-      <h2 className="text-lg font-semibold text-gray-900 mb-6 border-b border-gray-300 pb-3 pt-5 max-w-lg mx-auto">
-        Select your shifting service
+      <h2 className="text-center text-lg font-semibold text-gray-900 mb-6 border-b border-gray-300 pb-3 pt-5 max-w-lg mx-auto">
+        <br></br>Select your shifting service
       </h2>
 
       <div className="max-w-lg mx-auto">
@@ -142,28 +145,31 @@ const ShiftingService: React.FC = () => {
           description="Full-fledged house shifting service"
           icon={PackingMovingIcon}
           onClick={() => setShowSubCards((val) => !val)}
-          className="mb-10"
+          className="mb-1 bg-orange-10000"
+          style = {{paddingBottom: '0px' }}
         />
-
+        
         {/* Subcards */}
         {showSubCards && (
-          <div className="mb-10 pl-6 space-y-5" style={Subcards}>
+          <div className="mb-0 pl-6 space-y-5" style={Subcards}>
             <ServiceCard
               title="House shifting"
               description="For all types of house moves."
               icon={HouseIcon}
-              onClick={() => navigate("/ShiftingType?type=home")}
-              className="bg-blue-50 border-blue-200 flex-grow"
+              onClick={() => navigate("/ItemsManager?type=home")}
+              className="bg-blue-100 border-blue-200 flex-grow"
             />
             <ServiceCard
               title="Office shifting"
               description="Corporate or office relocations."
               icon={OfficeIcon}
               onClick={() => navigate("/ShiftingType?type=office")}
-              className="bg-indigo-50 border-indigo-200 flex-grow"
+              className="bg-red-100 border-red-200 flex-grow"
             />
           </div>
         )}
+        <div>
+        </div>
 
         {/* Mini Truck */}
         <ServiceCard
@@ -171,6 +177,7 @@ const ShiftingService: React.FC = () => {
           description="For shifting a few small items"
           icon={MiniTruckIcon}
           onClick={() => navigate("/MiniTruckBooking")}
+          style={{paddingTop: '10px'}}
         />
       </div>
     </div>

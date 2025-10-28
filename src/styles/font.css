@@ -1,0 +1,33 @@
+/* Import Google fonts first */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Poppins:wght@400;500;600&display=swap');
+
+/* Define base font and size variables */
+:root {
+  --font-family: 'Inter', 'Poppins', 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --font-size: 16px;
+}
+
+html {
+  font-family: var(--font-family);
+  font-size: var(--font-size);
+  line-height: 1.6;
+}
+
+/* Responsive scaling */
+@media (max-width: 600px) {
+  html {
+    font-size: 14px;
+  }
+}
+
+/* Optional heading and paragraph consistency */
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-family);
+  font-weight: 600;
+}
+
+p, span, button, input, label {
+  font-family: var(--font-family);
+  font-weight: 400;
+  font-size: 1rem;
+}

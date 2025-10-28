@@ -171,12 +171,7 @@ export function Dashboard({ onStartBooking, onTrackOrder, currentOrderId }: Dash
                 <p className="text-sm text-blue-100 mb-4">
                   Book your delivery with just one tap. Our trucks are ready to move your goods safely and quickly.
                 </p>
-                <Button
-                  className="bg-white text-blue-600 hover:bg-blue-100 transition"
-                  onClick={() => onStartBooking()}
-                >
-                  Book Now
-                </Button>
+                
               </div>
 
               {/* Right Side Animation */}
@@ -321,8 +316,9 @@ export function Dashboard({ onStartBooking, onTrackOrder, currentOrderId }: Dash
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.2 }}
           >
-            <h2 className="text-lg mb-4">Quick Services</h2>
-            <div className="grid grid-cols-2 gap-4">
+            <h2 className="text-lg mb-4 font-semibold">Quick Services</h2>
+
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
               {serviceCards.map((service, index) => (
                 <motion.div
                   key={service.id}
@@ -336,7 +332,7 @@ export function Dashboard({ onStartBooking, onTrackOrder, currentOrderId }: Dash
                     onMouseEnter={() => setHoveredService(service.id)}
                     onMouseLeave={() => setHoveredService(null)}
                   >
-                    <CardContent className="p-4">
+                    <CardContent className="p-4 flex flex-col items-start text-left">
                       <motion.div
                         className={`w-12 h-12 rounded-xl bg-gradient-to-r ${service.color} flex items-center justify-center mb-3 relative overflow-hidden`}
                         animate={{
@@ -350,10 +346,14 @@ export function Dashboard({ onStartBooking, onTrackOrder, currentOrderId }: Dash
                           size="md"
                         />
                       </motion.div>
-                      <h3 className="text-sm mb-1">{service.title}</h3>
+
+                      <h3 className="text-sm font-medium mb-1">{service.title}</h3>
                       <p className="text-xs text-gray-600 mb-2">{service.subtitle}</p>
+
+                      {/* FIX: prevent text shifting by using transform-origin and layout stability */}
                       <motion.p
-                        className="text-xs text-green-600"
+                        className="text-xs text-green-600 font-semibold"
+                        style={{ transformOrigin: 'left center' }}
                         animate={{
                           scale: hoveredService === service.id ? 1.05 : 1,
                         }}
@@ -368,6 +368,7 @@ export function Dashboard({ onStartBooking, onTrackOrder, currentOrderId }: Dash
             </div>
           </motion.div>
         </div>
+
 
         {/* Premium Services Ad */}
         <div className="px-6 pb-4">

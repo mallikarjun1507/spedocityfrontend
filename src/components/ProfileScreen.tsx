@@ -138,7 +138,8 @@ export function ProfileScreen() {
 
     // -------------------- Google Maps Loader --------------------
     const { isLoaded } = useJsApiLoader({
-      googleMapsApiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY as string,
+      // googleMapsApiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY as string,
+        googleMapsApiKey:'AIzaSyBHyUtxzdJUQjDk8up2cQDM1emSxgrjhIA',
       libraries,
 
     });

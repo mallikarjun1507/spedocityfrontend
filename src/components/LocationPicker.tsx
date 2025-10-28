@@ -18,7 +18,7 @@ import { Button } from './ui/button';
 import { Card, CardContent } from './ui/card';
 import { Badge } from './ui/badge';
 
-interface Location {
+export interface Location {
   id: string;
   type: 'home' | 'work' | 'favorite' | 'recent' | 'current';
   title: string;

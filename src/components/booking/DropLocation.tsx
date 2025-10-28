@@ -35,7 +35,8 @@ export function DropLocation({ pickup, onNext }: DropLocationProps) {
 
   const { isLoaded } = useJsApiLoader({
     id: "google-map-script",
-    googleMapsApiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY as string,
+    // googleMapsApiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY as string,
+    googleMapsApiKey:'AIzaSyBHyUtxzdJUQjDk8up2cQDM1emSxgrjhIA',
     libraries: ["places"],
   });
 
