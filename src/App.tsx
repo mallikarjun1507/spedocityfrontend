@@ -9,7 +9,6 @@ import { DropLocation } from "./components/booking/DropLocation";
 import { ConfirmBooking } from "./components/booking/ConfirmBooking";
 import FareEstimate from "./components/booking/FareEstimate";
 import { HelperOption } from "./components/booking/HelperOption";
-import ItemDetails from "./components/booking/ItemDetails";
 import { PaymentPage } from "./components/booking/PaymentPage";
 import Schedule from "./components/booking/Schedule";
 import { TrackDelivery } from "./components/booking/TrackDelivery";
@@ -172,7 +171,7 @@ function AppContent() {
                 </ProtectedRoute>
               }
             />
-
+          
             <Route
               path="/drop-location"
               element={
@@ -189,7 +188,7 @@ function AppContent() {
               path="/drop-location"
               element={
                 <ProtectedRoute>
-                  <DropLocation/>
+                  <DropLocation />
                 </ProtectedRoute>
               }
             />
@@ -203,15 +202,22 @@ function AppContent() {
                 </ProtectedRoute>
               }
             />
-
             <Route
+              path="/fare-estimate"
+              element={
+                <ProtectedRoute>
+                  <FareEstimate />
+                </ProtectedRoute>
+              }
+            />
+            {/* <Route
               path="/item-details" // ✅ Added route for your ItemDetails component
               element={
                 <ProtectedRoute>
                   <ItemDetails />
                 </ProtectedRoute>
               }
-            />
+            /> */}
             <Route
               path="/helper-option"
               element={
@@ -228,14 +234,7 @@ function AppContent() {
                 </ProtectedRoute>
               }
             />
-            <Route
-              path="/fare-estimate"
-              element={
-                <ProtectedRoute>
-                  <FareEstimate />
-                </ProtectedRoute>
-              }
-            />
+
             <Route
               path="/paymentpage"
               element={

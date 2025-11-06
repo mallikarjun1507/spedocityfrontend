@@ -4378,3 +4378,270 @@ html {
 }
 
 
+html, body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  overflow-y: auto;
+}
+
+.fareestimate-container {
+  min-height: 100vh;
+  background-color: #f9fafb;
+  font-family: "Poppins", sans-serif;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  padding-bottom: 120px;
+  box-sizing: border-box;
+}
+
+/* Header */
+.fareestimate-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: #fff;
+  padding: 12px 16px;
+  border-bottom: 1px solid #e5e7eb;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.back-btn {
+  font-size: 22px;
+  font-weight: 600;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+.header-title {
+  font-size: 18px;
+  font-weight: 600;
+}
+
+/* Vehicle Card and Sections */
+.vehicle-card,
+.offers-section,
+.fare-summary-section,
+.gst-section,
+.read-section {
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
+  margin: 12px;
+  padding: 16px;
+}
+
+.vehicle-info {
+  display: flex;
+  gap: 12px;
+  align-items: start;
+}
+
+.vehicle-icon {
+  width: 48px;
+  height: 48px;
+}
+
+.vehicle-type {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.view-address-btn {
+  background: none;
+  border: none;
+  color: #2563eb;
+  font-size: 14px;
+  cursor: pointer;
+  padding: 0;
+  margin-top: 2px;
+}
+
+.loading-time {
+  font-size: 13px;
+  color: #6b7280;
+  margin-top: 4px;
+}
+
+.time-away {
+  color: #16a34a;
+  font-weight: 600;
+  font-size: 13px;
+}
+
+/* Offers */
+.apply-coupon-btn {
+  width: 100%;
+  border: 1px dashed #d1d5db;
+  border-radius: 8px;
+  padding: 10px;
+  background: transparent;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.coins-box {
+  background: #eef2ff;
+  border-radius: 10px;
+  margin-top: 10px;
+  padding: 12px;
+  text-align: center;
+  color: #4b5563;
+}
+
+.coins-text {
+  color: #6d28d9;
+  font-weight: 600;
+  margin-top: 4px;
+}
+
+/* Fare Summary */
+.fare-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 14px;
+  margin-bottom: 6px;
+}
+
+.fare-row.total {
+  font-weight: 600;
+  margin-top: 8px;
+}
+
+.gst-info {
+  background: #fef9c3;
+  border-radius: 8px;
+  margin-top: 10px;
+  padding: 10px;
+  font-size: 13px;
+  display: flex;
+  justify-content: space-between;
+}
+
+.add-gstin-link {
+  color: #2563eb;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+/* Footer */
+.fareestimate-footer {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  background: #fff;
+  box-shadow: 0 -2px 6px rgba(0, 0, 0, 0.1);
+  z-index: 50;
+}
+
+.choose-goods-btn {
+  width: 100%;
+  background: #2563eb;
+  color: white;
+  font-weight: 600;
+  font-size: 15px;
+  padding: 14px 0;
+  border: none;
+  cursor: pointer;
+}
+
+/* Popup Overlay */
+.popup-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+  z-index: 100;
+}
+
+/* Bottom Sheet */
+.popup-bottom-sheet {
+  width: 100%;
+  max-height: 70%;
+  background: white;
+  border-top-left-radius: 20px;
+  border-top-right-radius: 20px;
+  transform: translateY(100%);
+  transition: transform 0.3s ease-out;
+  padding: 16px;
+}
+
+.popup-bottom-sheet.open {
+  transform: translateY(0);
+}
+
+.popup-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid #e5e7eb;
+  padding-bottom: 8px;
+  margin-bottom: 10px;
+}
+
+.popup-title {
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.popup-close-btn {
+  background: none;
+  border: none;
+  font-size: 20px;
+  cursor: pointer;
+}
+
+.popup-content p {
+  font-size: 14px;
+  color: #374151;
+  margin-bottom: 8px;
+}
+
+.goods-list {
+  list-style: none;
+  padding: 0;
+  margin-top: 10px;
+}
+
+.goods-item {
+  padding: 12px 16px;
+  background: #f3f4f6;
+  margin-bottom: 8px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s;
+  border: 1px solid transparent;
+}
+
+.goods-item:hover {
+  background: #e5e7eb;
+}
+
+.goods-item.selected {
+  background: #2563eb;
+  color: #fff;
+  border-color: #1d4ed8;
+}
+
+
+
+
+.popup-ok-btn {
+  width: 100%;
+  margin-top: 12px;
+  background: #2563eb;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  padding: 12px 0;
+  cursor: pointer;
+}

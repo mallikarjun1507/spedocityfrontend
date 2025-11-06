@@ -1,291 +1,266 @@
-import { Info, Shield } from "lucide-react";
-import { motion } from "motion/react";
-import { useState } from "react";
-import { useLocation, useNavigate } from "react-router-dom"; // ✅ Added code
-import { Button } from "../ui/button";
-import { Card, CardContent } from "../ui/card";
-import { Label } from "../ui/label";
-import { Separator } from "../ui/separator";
-import { Switch } from "../ui/switch";
+import { useEffect, useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 
-interface FareEstimateProps {
-  pickup?: string;
-  dropoff?: string;
-  service?: string;
-  helpers?: number;
-  onNext?: (fareData: FareData) => void;
-  onBack?: () => void;
-}
+const FareEstimate = () => {
+  const navigate = useNavigate();
+  const location = useLocation();
 
-interface FareData {
-  basePrice: number;
-  distancePrice: number;
-  helperPrice: number;
-  insurancePrice: number;
-  totalPrice: number;
-  hasInsurance: boolean;
-  estimatedDistance: number;
-  estimatedTime: string;
-}
+  // 🔹 Extract data passed from VehicleSelection (including coordinates if available)
+  const {
+    pickupLocation = "Not Provided",
+    dropLocation = "Not Provided",
+    vehicleType = "Vehicle",
+    vehicleIcon = "",
+    tripFare = 0,
+    gstRate = 0,
+    gstAmount = 0,
+    netFare = 0,
+    coins = 0,
+    distance = 0,
+    duration = "",
+    pickupCoords = null,
+    dropCoords = null,
+  } = location.state || {};
 
-const FareEstimate: React.FC<FareEstimateProps> = ({
-  pickup,
-  dropoff,
-  service,
-  helpers = 0,
-}) => {
-  const [hasInsurance, setHasInsurance] = useState(false);
+  const [coordinates] = useState({
+    pickupLat: pickupCoords?.lat ?? null,
+    pickupLng: pickupCoords?.lng ?? null,
+    dropLat: dropCoords?.lat ?? null,
+    dropLng: dropCoords?.lng ?? null,
+  });
 
-  // ✅ Added for data transfer
-  const location = useLocation(); // ✅ Added
-  const navigate = useNavigate(); // ✅ Added
-  const { vehicle, item, helper, schedule } = location.state || {}; // ✅ Added
+  const [showPopup, setShowPopup] = useState(false);
+  const [popupType, setPopupType] = useState<"address" | "goods" | null>(null);
+  const [selectedGoods, setSelectedGoods] = useState<string>("");
 
-  // ✅ Added fallback to handle values from previous pages
-  const currentPickup = pickup || location.state?.pickup || "Not Provided";
-  const currentDropoff = dropoff || location.state?.dropoff || "Not Provided";
-  const currentHelpers = helpers || (helper?.required ? 1 : 0);
-  const currentService = service || vehicle?.name || "Vehicle";
+  const freeLoadingTime = 20;
+  const timeAway = duration ? `${duration} away` : "Calculating...";
 
-  // Mock calculations
-  const estimatedDistance = 12.5;
-  const estimatedTime = "25-35 mins";
-  const basePrice =
-    currentService.toLowerCase().includes("bike")
-      ? 49
-      : currentService.toLowerCase().includes("auto")
-      ? 89
-      : currentService.toLowerCase().includes("truck")
-      ? 199
-      : 129;
-  const distancePrice = Math.round(
-    estimatedDistance *
-      (currentService.toLowerCase().includes("bike")
-        ? 3
-        : currentService.toLowerCase().includes("auto")
-        ? 5
-        : 8)
-  );
-  const helperPrice = currentHelpers * 50;
-  const insurancePrice = hasInsurance
-    ? Math.round((basePrice + distancePrice) * 0.05)
-    : 0;
-  const totalPrice =
-    basePrice + distancePrice + helperPrice + insurancePrice;
+  useEffect(() => {
+    console.group("🚚 FareEstimate Data Received");
+    console.log("Pickup:", pickupLocation);
+    console.log("Drop:", dropLocation);
+    console.log("Vehicle:", vehicleType);
+    console.log("Trip Fare:", tripFare);
+    console.log("GST Rate:", gstRate);
+    console.log("GST Amount:", gstAmount);
+    console.log("Net Fare:", netFare);
+    console.log("Coins:", coins);
+    console.log("Distance:", distance);
+    console.log("Duration:", duration);
+    console.log("Coordinates (for internal use only):", coordinates);
+    console.groupEnd();
+  }, []);
 
-  // ✅ Updated handleNext with state passing logic
-  const handleNext = () => {
-    const finalData = {
-      vehicle,
-      item,
-      helper,
-      schedule,
-      pickup: currentPickup,
-      dropoff: currentDropoff,
-      basePrice,
-      distancePrice,
-      helperPrice,
-      insurancePrice,
-      totalPrice,
-      hasInsurance,
-      estimatedDistance,
-      estimatedTime,
-    };
+  const openPopup = (type: "address" | "goods") => {
+    if (type === "goods" && selectedGoods) {
+      navigate("/paymentpage", {
+        state: {
+          pickupLocation,
+          dropLocation,
+          vehicleType,
+          vehicleIcon,
+          tripFare: Number(tripFare) || 0,
+          gstRate: Number(gstRate) || 0,
+          gstAmount: Number(gstAmount) || 0,
+          netFare: Number(netFare) || 0,
+          coins: Number(coins) || 0,
+          selectedGoods,
+          pickupCoords,
+          dropCoords,
 
-    // Pass data to Payment page
-    navigate("/paymentpage", { state: finalData });
+        },
+      });
+      return;
+    }
 
-    // Optional: store locally
-    localStorage.setItem("fareData", JSON.stringify(finalData));
+    setPopupType(type);
+    setShowPopup(true);
+  };
+
+  const closePopup = () => {
+    setShowPopup(false);
+    setTimeout(() => setPopupType(null), 300);
+  };
+
+  const handlePopupOk = () => {
+    closePopup();
+  };
+
+  const handleSelectGoods = (item: string) => {
+    setSelectedGoods(item);
   };
 
   return (
-    <div className="flex flex-col h-full bg-gray-50">
-      {/* Header */}
-      <div className="bg-white px-6 py-4 shadow-sm">
-        <div className="flex items-center justify-center mb-4">
-          <h1 className="text-lg font-medium text-gray-800">Fare Estimate</h1>
+    <div className="fareestimate-wrapper">
+      <div className="fareestimate-container">
+        {/* Header */}
+        <header className="fareestimate-header">
+          <button className="back-btn" onClick={() => navigate(-1)}></button>
+          <h2 className="header-title">Review Booking</h2>
+        </header>
+
+        {/* Vehicle Card */}
+        <div className="vehicle-card">
+          <div className="vehicle-info">
+            <img src={vehicleIcon} alt={vehicleType} className="vehicle-icon" />
+            <div>
+              <h3 className="vehicle-type">{vehicleType}</h3>
+              <button
+                onClick={() => openPopup("address")}
+                className="view-address-btn"
+              >
+                View Address Details
+              </button>
+              <p className="loading-time">
+                🕒 Free <span>{freeLoadingTime} mins</span> of loading/unloading
+                time included.
+              </p>
+            </div>
+          </div>
+          <p className="time-away">{timeAway}</p>
         </div>
-      </div>
 
-      {/* Content */}
-      <div className="flex-1 overflow-y-auto p-6 pb-24">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-          className="space-y-6"
-        >
-          {/* Route Details */}
-          <Card className="bg-white border-gray-200">
-            <CardContent className="p-4">
-              <h3 className="text-base mb-4">Route Details</h3>
-              <div className="space-y-4">
-                <div className="flex items-start gap-3">
-                  <div className="flex flex-col items-center pt-1">
-                    <div className="w-3 h-3 bg-green-500 rounded-full" />
-                    <div className="w-0.5 h-6 bg-gray-300 my-1" />
-                    <div className="w-3 h-3 bg-red-500 rounded-full" />
-                  </div>
-                  <div className="flex-1 space-y-4">
-                    <div>
-                      <p className="text-xs text-gray-500">From</p>
-                      <p className="text-sm">{currentPickup}</p>
-                    </div>
-                    <div>
-                      <p className="text-xs text-gray-500">To</p>
-                      <p className="text-sm">{currentDropoff}</p>
-                    </div>
-                  </div>
-                </div>
-
-                <Separator />
-
-                <div className="grid grid-cols-3 gap-4 text-center">
-                  <div>
-                    <p className="text-xs text-gray-500">Distance</p>
-                    <p className="text-sm">{estimatedDistance} km</p>
-                  </div>
-                  <div>
-                    <p className="text-xs text-gray-500">Time</p>
-                    <p className="text-sm">{estimatedTime}</p>
-                  </div>
-                  <div>
-                    <p className="text-xs text-gray-500">Service</p>
-                    <p className="text-sm">{currentService}</p>
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Insurance Option */}
-          <Card className="bg-white border-gray-200">
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between mb-3">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
-                    <Shield className="w-5 h-5 text-blue-600" />
-                  </div>
-                  <div>
-                    <Label htmlFor="insurance" className="text-sm">
-                      Delivery Insurance
-                    </Label>
-                    <p className="text-xs text-gray-600">
-                      Protect your items during delivery
-                    </p>
-                  </div>
-                </div>
-                <Switch
-                  id="insurance"
-                  checked={hasInsurance}
-                  onCheckedChange={setHasInsurance}
-                />
-              </div>
-
-              {hasInsurance && (
-                <motion.div
-                  initial={{ opacity: 0, height: 0 }}
-                  animate={{ opacity: 1, height: "auto" }}
-                  transition={{ duration: 0.3 }}
-                  className="bg-blue-50 rounded-lg p-3 mt-3"
-                >
-                  <div className="flex items-start gap-2">
-                    <Info className="w-4 h-4 text-blue-600 mt-0.5 flex-shrink-0" />
-                    <div className="text-xs text-blue-700">
-                      <p className="mb-1">Coverage up to ₹10,000</p>
-                      <p>Additional charge: ₹{insurancePrice}</p>
-                    </div>
-                  </div>
-                </motion.div>
-              )}
-            </CardContent>
-          </Card>
-
-          {/* Fare Breakdown */}
-          <Card className="bg-white border-gray-200">
-            <CardContent className="p-4">
-              <h3 className="text-base mb-4">Fare Breakdown</h3>
-              <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-600">Base fare</span>
-                  <span className="text-sm">₹{basePrice}</span>
-                </div>
-
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-600">
-                    Distance ({estimatedDistance} km)
-                  </span>
-                  <span className="text-sm">₹{distancePrice}</span>
-                </div>
-
-                {currentHelpers > 0 && (
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-gray-600">
-                      Helper charges ({currentHelpers})
-                    </span>
-                    <span className="text-sm">₹{helperPrice}</span>
-                  </div>
-                )}
-
-                {hasInsurance && (
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-gray-600">Insurance</span>
-                    <span className="text-sm">₹{insurancePrice}</span>
-                  </div>
-                )}
-
-                <Separator />
-
-                <div className="flex items-center justify-between">
-                  <span className="text-base">Total Amount</span>
-                  <span className="text-lg text-green-600">
-                    ₹{totalPrice}
-                  </span>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Important Notes */}
-          <Card className="bg-yellow-50 border-yellow-200">
-            <CardContent className="p-4">
-              <h3 className="text-sm mb-2">💡 Important Notes</h3>
-              <ul className="text-xs text-gray-600 space-y-1">
-                <li>• Final amount may vary based on actual distance</li>
-                <li>• Waiting charges apply after 5 minutes</li>
-                <li>• Toll charges (if any) will be added</li>
-                <li>• Cancellation free within 2 minutes of booking</li>
-              </ul>
-            </CardContent>
-          </Card>
-        </motion.div>
-      </div>
-
-      {/* Bottom Button */}
-      <div className="fixed bottom-0 left-0 right-0 p-6 bg-white border-t">
-        <div className="flex items-center justify-between mb-3">
-          <span className="text-sm text-gray-600">Estimated Total:</span>
-          <span className="text-lg text-green-600">₹{totalPrice}</span>
-        </div>
-         <div style={{ padding: "16px", borderTop: "1px solid #ddd" }}>
+        {/* Offers Section */}
+        <section className="offers-section">
+          <h3 className="section-title">Offers and Discounts</h3>
           <button
-            onClick={handleNext}
-          
-            style={{
-              width: "100%",
-              padding: "12px",
-              background: "#3b82f6", // blue color
-              color: "#fff",
-              border: "none",
-              borderRadius: "8px",
-              cursor: "pointer",
-            }}
+            className="apply-coupon-btn"
+            onClick={() => console.log("Apply Coupon clicked")}
           >
-            Continue
+            Apply Coupon
           </button>
-        </div>
+          <div className="coins-box">
+            <p>Minimum 25 coins required</p>
+            <p className="coins-text">
+              ✨ You’ll get <span>{coins} coins</span> on this order ✨
+            </p>
+          </div>
+        </section>
+
+        {/* Fare Summary */}
+        <section className="fare-summary-section">
+          <h3 className="section-title">Fare Summary</h3>
+          <div className="fare-row">
+            <span>Trip Fare (incl. Tolls & GST)</span>
+            <span>₹{tripFare.toFixed(2)}</span>
+          </div>
+          <div className="fare-row">
+            <span>GST Charges (included in fare)</span>
+            <span>₹{gstAmount.toFixed(2)}</span>
+          </div>
+          <div className="fare-row">
+            <span>Net Fare</span>
+            <span>₹{netFare}</span>
+          </div>
+          <div className="fare-row total">
+            <span>Amount Payable (rounded)</span>
+            <span>₹{Math.round(netFare)}</span>
+          </div>
+          <div className="gst-info">
+            <p>
+              Fare includes <span>{gstRate}% GST</span>. Add your GSTIN to claim
+              input tax credit.
+            </p>
+            <a href="#" className="add-gstin-link">
+              Add GSTIN
+            </a>
+          </div>
+        </section>
+
+        {/* Read Before Booking */}
+        <section className="read-section">
+          <h3 className="section-title">Read before Booking</h3>
+          <ul className="read-list">
+            <li>
+              Fare includes {freeLoadingTime} mins free loading/unloading time.
+            </li>
+            <li>₹2.22/min for additional loading/unloading time.</li>
+            <li>Fare may change if route or location changes.</li>
+            <li>Parking charges to be paid by customer.</li>
+            <li>Fare includes toll and permit charges, if any.</li>
+            <li>We don’t allow overloading.</li>
+          </ul>
+        </section>
       </div>
+
+      <footer className="fareestimate-footer">
+        <button
+          className="choose-goods-btn"
+          onClick={() => openPopup("goods")}
+        >
+          {selectedGoods ? "Proceed to Payment" : "Choose Goods Type"}
+        </button>
+      </footer>
+
+      {/* Popup Modal */}
+      {showPopup && (
+        <div className="popup-overlay" onClick={closePopup}>
+          <div
+            className={`popup-bottom-sheet ${showPopup ? "open" : ""}`}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <header className="popup-header">
+              <h3 className="popup-title">
+                {popupType === "address"
+                  ? "Address Details"
+                  : "Choose Goods Type"}
+              </h3>
+              <button className="popup-close-btn" onClick={closePopup}>
+                ✖
+              </button>
+            </header>
+
+            <div className="popup-content">
+              {popupType === "address" ? (
+                <>
+                  <p>
+                    <strong>Pickup:</strong> {pickupLocation}
+                  </p>
+                  <p>
+                    <strong>Drop:</strong> {dropLocation}
+                  </p>
+                  <p>
+                    <strong>Vehicle:</strong> {vehicleType}
+                  </p>
+                  {/* ✅ Latitude & Longitude intentionally hidden */}
+                </>
+              ) : (
+                <>
+                  <p>Select goods type:</p>
+                  <ul className="goods-list">
+                    {[
+                      "Furniture",
+                      "Electronics",
+                      "Groceries",
+                      "Construction Material",
+                      "Household Items",
+                    ].map((item) => (
+                      <li
+                        key={item}
+                        className={`goods-item ${selectedGoods === item ? "selected" : ""
+                          }`}
+                        onClick={() => handleSelectGoods(item)}
+                      >
+                        {item}
+                      </li>
+                    ))}
+                  </ul>
+                </>
+              )}
+            </div>
+
+            <button
+              className={`popup-ok-btn ${popupType === "goods" && !selectedGoods ? "disabled" : ""
+                }`}
+              onClick={handlePopupOk}
+              disabled={popupType === "goods" && !selectedGoods}
+            >
+              OK
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

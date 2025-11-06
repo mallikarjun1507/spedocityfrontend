@@ -12,14 +12,22 @@ interface Vehicle {
 interface VehicleSelectionState {
   pickup: string;
   drop: string;
+  pickupCoords?: { lat: number; lng: number };
+  dropCoords?: { lat: number; lng: number };
+  distance?: string;
+  duration?: string;
+  totalPrice?: string;
 }
 
 const VehicleSelection: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const state = location.state as VehicleSelectionState;
+
   const pickup = state?.pickup || "";
   const dropoff = state?.drop || "";
+  const pickupCoords = state?.pickupCoords;
+  const dropCoords = state?.dropCoords;
 
   const [distance, setDistance] = useState<number | null>(null);
   const [duration, setDuration] = useState<string | null>(null);
@@ -38,25 +46,48 @@ const VehicleSelection: React.FC = () => {
   ];
 
   const fetchDistance = async () => {
+    console.log(" Pickup:", pickup, pickupCoords);
+    console.log(" Dropoff:", dropoff, dropCoords);
+
     try {
       const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
+      console.log(" Using API Key:", apiKey ? "Loaded " : "Missing ");
+
+      let originsParam = pickup;
+      let destinationsParam = dropoff;
+
+      // 🟩 If coordinates available, use them (more accurate)
+      if (pickupCoords && dropCoords) {
+        originsParam = `${pickupCoords.lat},${pickupCoords.lng}`;
+        destinationsParam = `${dropCoords.lat},${dropCoords.lng}`;
+      }
+
       const response = await fetch(
         `https://maps.googleapis.com/maps/api/distancematrix/json?origins=${encodeURIComponent(
-          pickup
-        )}&destinations=${encodeURIComponent(dropoff)}&key=${apiKey}`
+          originsParam
+        )}&destinations=${encodeURIComponent(destinationsParam)}&key=${apiKey}`
       );
+
       const data = await response.json();
+      console.log("📦 Distance Matrix API Response:", data);
 
       if (data.rows?.[0]?.elements?.[0]?.status === "OK") {
         const distMeters = data.rows[0].elements[0].distance.value;
         const durText = data.rows[0].elements[0].duration.text;
-        setDistance(Number((distMeters / 1000).toFixed(2)));
+        const km = Number((distMeters / 1000).toFixed(2));
+
+        console.log(` Distance: ${km} km`);
+        console.log(` Duration: ${durText}`);
+
+        setDistance(km);
         setDuration(durText);
       } else {
+        console.warn(" Invalid API response. Using default values.");
         setDistance(10);
         setDuration("20 mins");
       }
-    } catch {
+    } catch (err) {
+      console.error(" Error fetching distance:", err);
       setDistance(10);
       setDuration("20 mins");
     } finally {
@@ -66,14 +97,17 @@ const VehicleSelection: React.FC = () => {
 
   useEffect(() => {
     fetchDistance();
-  }, [pickup, dropoff]);
+  }, [pickup, dropoff, pickupCoords, dropCoords]);
 
   const calculateFare = (vehicle: Vehicle) => {
     if (!distance) return "—";
-    return (vehicle.basePrice + vehicle.rate * distance).toFixed(2);
+    const fare = (vehicle.basePrice + vehicle.rate * distance).toFixed(2);
+    console.log(` Calculated Fare for ${vehicle.name}: ₹${fare}`);
+    return fare;
   };
 
   const handleSelectVehicle = (vehicle: Vehicle, index: number) => {
+    console.log(" Vehicle Selected:", vehicle);
     setSelectedVehicle(vehicle);
     const element = vehicleRefs.current[index];
     if (element && scrollContainerRef.current) {
@@ -84,24 +118,42 @@ const VehicleSelection: React.FC = () => {
   };
 
   const handleProceed = () => {
-    if (!selectedVehicle || !distance) return;
-    navigate("/item-details", {
-      state: {
-        pickup,
-        dropoff,
-        vehicle: selectedVehicle,
-        fare: calculateFare(selectedVehicle),
-        distance,
-        duration,
-      },
-    });
+    if (!selectedVehicle || !distance) {
+      console.warn(" Please select a vehicle first!");
+      return;
+    }
+
+    const tripFare = Number(calculateFare(selectedVehicle));
+    const gstRate = 18;
+    const gstAmount = Number((tripFare * (gstRate / 100)).toFixed(2));
+    const netFare = tripFare;
+
+    const payload = {
+      pickupLocation: pickup,
+      dropLocation: dropoff,
+      pickupCoords,
+      dropCoords,
+      vehicleType: selectedVehicle.name,
+      vehicleIcon: selectedVehicle.image,
+      tripFare,
+      gstRate,
+      gstAmount,
+      netFare,
+      coins: 2,
+      distance,
+      duration,
+    };
+
+    console.log(" Proceeding to FareEstimate with data:", payload);
+
+    navigate("/fare-estimate", { state: payload });
   };
 
-  if (loading) return <div className="p-6 text-center text-gray-600">Calculating distance...</div>;
+  if (loading)
+    return <div className="p-6 text-center text-gray-600">Calculating distance...</div>;
 
   return (
     <div className="flex flex-col h-screen bg-gray-50">
-      {/* Sticky Header */}
       <div className="bg-white shadow p-4 sticky top-0 z-10">
         <h2 className="text-xl font-semibold mb-3 text-gray-800">Select Vehicle</h2>
         <div className="bg-gray-50 p-3 rounded-lg border border-gray-200">
@@ -122,13 +174,12 @@ const VehicleSelection: React.FC = () => {
         </div>
       </div>
 
-      {/* Scrollable Vehicle List */}
       <div
         ref={scrollContainerRef}
         className="overflow-y-auto p-4 space-y-3"
         style={{
-          height: "calc(100vh - 128px)", // header + bottom button approx
-          paddingBottom: "160px",        // ensures last card fully visible above button
+          height: "calc(100vh - 128px)",
+          paddingBottom: "160px",
         }}
       >
         {vehicles.map((v, index) => (
@@ -142,7 +193,6 @@ const VehicleSelection: React.FC = () => {
                 : "bg-white border border-gray-200"
             }`}
           >
-            {/* Fare, Distance, Time Top-Right */}
             <div className="absolute top-3 right-4 text-right">
               <p className="text-lg font-semibold text-blue-600">₹{calculateFare(v)}</p>
               {distance && duration && (
@@ -153,7 +203,6 @@ const VehicleSelection: React.FC = () => {
               )}
             </div>
 
-            {/* Vehicle Info */}
             <div className="flex items-center gap-4">
               <img src={v.image} alt={v.name} className="w-14 h-14 object-contain" />
               <div>
@@ -165,7 +214,6 @@ const VehicleSelection: React.FC = () => {
         ))}
       </div>
 
-      {/* Fixed Bottom Button */}
       <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4">
         <button
           onClick={handleProceed}

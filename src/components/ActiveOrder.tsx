@@ -24,6 +24,9 @@ import { Badge } from './ui/badge';
 import { Button } from './ui/button';
 import { Card, CardContent } from './ui/card';
 
+// 🆕 added
+import { useLocation, useNavigate } from "react-router-dom";
+
 interface ActiveOrderProps {
   orderId: string;
   onBack: () => void;
@@ -50,21 +53,38 @@ const statusSteps = [
 ];
 
 export function ActiveOrder({ orderId, onBack, onOrderComplete }: ActiveOrderProps) {
+  // 🆕 added
+  const location = useLocation();
+  const navigate = useNavigate();
+  const bookingData = location.state?.bookingData;
+
   const [currentStatus, setCurrentStatus] = useState<OrderStatus>('searching');
   const [eta, setEta] = useState(15);
   const [driverInfo, setDriverInfo] = useState<DriverInfo | null>(null);
   const [isDriverNearby, setIsDriverNearby] = useState(false);
   const [liveLocation, setLiveLocation] = useState({ lat: 12.9716, lng: 77.5946 });
+
+  // 🆕 updated — use bookingData if available
   const [orderDetails] = useState({
-    pickup: 'Whitefield Main Road, Bangalore',
-    dropoff: 'Electronic City Phase 1, Bangalore',
-    service: 'Bike Delivery',
-    distance: '18.5 km',
-    estimatedTime: '25 mins',
-    fare: '₹89'
+    pickup: bookingData?.pickup || bookingData?.pickupLocation || 'Whitefield Main Road, Bangalore',
+    dropoff: bookingData?.dropoff || bookingData?.dropLocation || 'Electronic City Phase 1, Bangalore',
+    service: bookingData?.service || 'Bike Delivery',
+    distance: bookingData?.distance || '18.5 km',
+    estimatedTime: bookingData?.estimatedTime || '25 mins',
+    fare: bookingData?.fare || `₹${bookingData?.totalAmount || 89}`
   });
 
-  // Simulate order progression and live updates
+  // 🆕 redirect if no booking data
+  useEffect(() => {
+    if (!bookingData) {
+      console.warn('No booking data found! Redirecting to home...');
+      // Redirect after a small delay so warning logs are visible
+      setTimeout(() => navigate('/'), 1500);
+    }
+  }, [bookingData, navigate]);
+
+  // Inside ActiveOrder component...
+
   useEffect(() => {
     const timer = setTimeout(() => {
       switch (currentStatus) {
@@ -80,19 +100,50 @@ export function ActiveOrder({ orderId, onBack, onOrderComplete }: ActiveOrderPro
           });
           setEta(12);
           break;
+
         case 'assigned':
           setCurrentStatus('pickup');
           setEta(8);
           setIsDriverNearby(true);
           break;
+
         case 'pickup':
           setCurrentStatus('in-transit');
           setEta(25);
           setIsDriverNearby(false);
           break;
+
         case 'in-transit':
           setCurrentStatus('delivered');
-          setTimeout(() => onOrderComplete(), 2000);
+
+          localStorage.setItem("lastOrder", JSON.stringify({
+            bookingData,
+            orderId: bookingData?.bookingId || orderId,
+            amount: bookingData?.totalAmount || 89,
+            pickup: bookingData?.pickup || bookingData?.pickupAddress || bookingData?.pickupCoords || "Pickup not found",
+            dropoff: bookingData?.dropoff || bookingData?.dropAddress || bookingData?.dropCoords || "Drop not found",
+            pickupCoords: bookingData?.pickupCoords,
+            dropCoords: bookingData?.dropCoords,
+          }));
+
+
+          // ✅ Navigate to order completed page
+          setTimeout(() => {
+            onOrderComplete?.();
+            navigate("/order-completed", {
+              state: {
+                bookingData,
+                orderId: bookingData?.bookingId || orderId,
+                amount: bookingData?.totalAmount || 89,
+                pickup: bookingData?.pickup || bookingData?.pickupAddress || bookingData?.pickupCoords,
+                dropoff: bookingData?.dropoff || bookingData?.dropAddress || bookingData?.dropCoords,
+                pickupCoords: bookingData?.pickupCoords,
+                dropCoords: bookingData?.dropCoords,
+              },
+            });
+
+          }, 2000);
+
           break;
       }
     }, 3000);
@@ -109,7 +160,6 @@ export function ActiveOrder({ orderId, onBack, onOrderComplete }: ActiveOrderPro
           lng: prev.lng + (Math.random() - 0.5) * 0.01
         }));
 
-        // Simulate ETA updates
         if (eta > 1) {
           setEta(prev => Math.max(1, prev - Math.random() * 2));
         }
@@ -129,35 +179,32 @@ export function ActiveOrder({ orderId, onBack, onOrderComplete }: ActiveOrderPro
   };
 
   const handleShare = () => {
-    // Mock sharing functionality
     if (navigator.share) {
       navigator.share({
         title: 'Track my Spedocity delivery',
-        text: `Track my order #${orderId}`,
-        url: `https://spedocity.com/track/${orderId}`
+        text: `Track my order #${bookingData?.bookingId || orderId}`,
+        url: `https://spedocity.com/track/${bookingData?.bookingId || orderId}`
       });
     } else {
-      // Fallback - copy to clipboard
-      navigator.clipboard.writeText(`Track my order: https://spedocity.com/track/${orderId}`);
+      navigator.clipboard.writeText(`Track my order: https://spedocity.com/track/${bookingData?.bookingId || orderId}`);
     }
   };
 
+  // 🆕 use dynamic ID
+  const activeOrderId = bookingData?.bookingId || orderId;
+
+
+
   return (
     <div className="flex flex-col h-full bg-gray-50 relative overflow-hidden">
-      {/* Header - Fixed */}
+      {/* Header */}
       <div className="bg-white px-6 py-4 shadow-sm relative z-10">
         <div className="flex items-center justify-between">
-
-          {/* Empty div to balance spacing on left */}
           <div className="w-16" />
-
-          {/* Centered Track Order */}
           <div className="text-center flex-1">
             <h1 className="text-lg font-medium">Track Order</h1>
-            <p className="text-sm text-gray-500">#{orderId}</p>
+            <p className="text-sm text-gray-500">#{activeOrderId}</p>
           </div>
-
-          {/* Right action buttons */}
           <div className="flex items-center gap-2">
             <Button variant="ghost" size="sm">
               <MoreVertical className="w-4 h-4" />
@@ -166,9 +213,9 @@ export function ActiveOrder({ orderId, onBack, onOrderComplete }: ActiveOrderPro
               <Share className="w-4 h-4" />
             </Button>
           </div>
-
         </div>
       </div>
+
 
       {/* Scrollable Content Container */}
       <div className="flex-1 scroll-container">
@@ -408,8 +455,8 @@ export function ActiveOrder({ orderId, onBack, onOrderComplete }: ActiveOrderPro
                 <h3 className="text-lg font-medium">Order Progress</h3>
                 <div className="flex items-center gap-2">
                   <Badge className={`${currentStatus === 'pickup' ? 'bg-green-100 text-green-700' :
-                      currentStatus === 'in-transit' ? 'bg-blue-100 text-blue-700' :
-                        'bg-gray-100 text-gray-700'
+                    currentStatus === 'in-transit' ? 'bg-blue-100 text-blue-700' :
+                      'bg-gray-100 text-gray-700'
                     }`}>
                     {statusSteps.find(s => s.id === currentStatus)?.label}
                   </Badge>

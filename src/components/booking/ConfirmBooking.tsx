@@ -1,5 +1,6 @@
 import { CheckCircle, Clock, CreditCard, MapPin, Package, Phone } from 'lucide-react';
 import { motion } from 'motion/react';
+import { useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Badge } from '../ui/badge';
 import { Button } from '../ui/button';
@@ -9,24 +10,44 @@ export function ConfirmBooking() {
   const location = useLocation();
   const navigate = useNavigate();
 
-  // Get bookingData from location.state
-  const bookingData = location.state;
+  console.log(' Navigation started to ConfirmBooking page');
+  console.log(' Raw location.state:', location.state);
 
-  // Redirect if no bookingData is present
+  // Retrieve booking data safely (from router state or localStorage)
+  const bookingData =
+    location.state || JSON.parse(localStorage.getItem('bookingData') || 'null');
+
+  console.log(' Booking data loaded:', bookingData);
+
+  useEffect(() => {
+    if (!bookingData) {
+      console.warn(' No booking data found! Redirecting to home...');
+      navigate('/');
+    } else {
+      console.log(' Booking data found. Ready to render confirmation.');
+    }
+  }, [bookingData, navigate]);
+
   if (!bookingData) {
-    navigate('/'); // redirect to dashboard or previous page
-    return <div className="p-6 text-center text-gray-500">Loading booking details...</div>;
+    return (
+      <div className="p-6 text-center text-gray-500">
+        Loading booking details...
+      </div>
+    );
   }
 
+  // Helper functions
   const getServiceName = (serviceId: string) => {
     const serviceMap: { [key: string]: string } = {
       'bike': 'Bike Delivery',
       'auto': 'Auto Rickshaw',
       'mini-truck': 'Mini Truck',
       'packers': 'Packers & Movers',
-      'heavy-loader': 'Heavy Loader'
+      'heavy-loader': 'Heavy Loader',
     };
-    return serviceMap[serviceId] || serviceId;
+    const name = serviceMap[serviceId] || serviceId;
+    console.log(' Service selected:', name);
+    return name;
   };
 
   const getPaymentMethodName = (method: string) => {
@@ -35,33 +56,55 @@ export function ConfirmBooking() {
       'wallet': 'Spedocity Wallet',
       'card': 'Credit/Debit Card',
       'cod': 'Cash on Delivery',
-      'pay-later': 'Pay Later'
+      'pay-later': 'Pay Later',
     };
-    return methodMap[method] || method;
+    const methodName = methodMap[method] || method;
+    console.log(' Payment method:', methodName);
+    return methodName;
   };
 
   const formatSchedule = () => {
-    if (bookingData.schedule.type === 'now') {
-      return 'Pickup within 15-30 minutes';
-    } else {
+    console.log(' Formatting schedule data:', bookingData.schedule);
+    if (bookingData.schedule?.type === 'now') {
+      return 'Pickup within 15–30 minutes';
+    } else if (bookingData.schedule?.date) {
       const date = new Date(bookingData.schedule.date).toLocaleDateString();
       return `${date} • ${bookingData.schedule.timeSlot}`;
     }
+    return 'Schedule not available';
   };
 
-  // Updated navigation handlers
   const handleTrackDelivery = () => {
-    navigate('/track-delivery', { state: bookingData });
+    console.log('Navigating to ActiveOrder with booking data:', bookingData);
+
+    // ✅ Extract coordinates (from new top-level fields)
+    const pickupCoords = bookingData?.pickupCoords || bookingData?.coordinates?.pickup || null;
+    const dropCoords = bookingData?.dropCoords || bookingData?.coordinates?.drop || null;
+
+    console.log('Passing coords to ActiveOrder:', { pickupCoords, dropCoords });
+
+    // ✅ Pass all bookingData + coords to ActiveOrder
+    navigate('/active-order', {
+      state: {
+        bookingData: {
+          ...bookingData,
+          pickupCoords,
+          dropCoords,
+        },
+      },
+    });
   };
+
+
 
   const handleBookAnother = () => {
+    console.log(' Booking another delivery...');
     navigate('/dashboard');
   };
 
-
   return (
     <div className="flex flex-col h-full bg-gray-50">
-      {/* Success Header */}
+      {/* Header */}
       <div className="bg-gradient-to-r from-green-500 to-emerald-600 px-6 py-8 text-white text-center">
         <motion.div
           initial={{ scale: 0.5, opacity: 0 }}
@@ -70,7 +113,9 @@ export function ConfirmBooking() {
         >
           <CheckCircle className="w-16 h-16 mx-auto mb-4" />
           <h1 className="text-xl mb-2">Booking Confirmed!</h1>
-          <p className="text-sm opacity-90">Your delivery has been scheduled successfully</p>
+          <p className="text-sm opacity-90">
+            Your delivery has been scheduled successfully
+          </p>
         </motion.div>
       </div>
 
@@ -81,7 +126,9 @@ export function ConfirmBooking() {
           <CardContent className="p-4 text-center">
             <h2 className="text-lg mb-2">Booking ID</h2>
             <p className="text-2xl text-blue-600 mb-2">#{bookingData.bookingId}</p>
-            <p className="text-xs text-gray-600">Save this ID for future reference</p>
+            <p className="text-xs text-gray-600">
+              Save this ID for future reference
+            </p>
           </CardContent>
         </Card>
 
@@ -100,11 +147,15 @@ export function ConfirmBooking() {
               <div className="flex-1 space-y-4">
                 <div>
                   <p className="text-xs text-gray-500">Pickup Location</p>
-                  <p className="text-sm">{bookingData.pickup}</p>
+                  <p className="text-sm">
+                    {bookingData.pickup || bookingData.pickupLocation || 'N/A'}
+                  </p>
                 </div>
                 <div>
                   <p className="text-xs text-gray-500">Drop Location</p>
-                  <p className="text-sm">{bookingData.dropoff}</p>
+                  <p className="text-sm">
+                    {bookingData.dropoff || bookingData.dropLocation || 'N/A'}
+                  </p>
                 </div>
               </div>
             </div>
@@ -133,7 +184,10 @@ export function ConfirmBooking() {
               {bookingData.helpers > 0 && (
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-gray-600">Helpers</span>
-                  <span className="text-sm">{bookingData.helpers} helper{bookingData.helpers > 1 ? 's' : ''}</span>
+                  <span className="text-sm">
+                    {bookingData.helpers}{' '}
+                    {bookingData.helpers > 1 ? 'helpers' : 'helper'}
+                  </span>
                 </div>
               )}
             </div>
@@ -149,22 +203,30 @@ export function ConfirmBooking() {
             <div className="space-y-3">
               <div className="flex items-center justify-between">
                 <span className="text-sm text-gray-600">Payment Method</span>
-                <span className="text-sm">{getPaymentMethodName(bookingData.paymentMethod)}</span>
+                <span className="text-sm">
+                  {getPaymentMethodName(bookingData.paymentMethod)}
+                </span>
               </div>
 
               <div className="flex items-center justify-between">
                 <span className="text-sm text-gray-600">Amount Paid</span>
-                <span className="text-lg text-green-600">₹{bookingData.totalAmount}</span>
+                <span className="text-lg text-green-600">
+                  ₹{bookingData.totalAmount}
+                </span>
               </div>
 
               <div className="flex items-center justify-between">
                 <span className="text-sm text-gray-600">Status</span>
-                <Badge className={
-                  bookingData.paymentMethod === 'cod'
-                    ? 'bg-orange-100 text-orange-700'
-                    : 'bg-green-100 text-green-700'
-                }>
-                  {bookingData.paymentMethod === 'cod' ? 'Pay on Delivery' : 'Paid'}
+                <Badge
+                  className={
+                    bookingData.paymentMethod === 'cod'
+                      ? 'bg-orange-100 text-orange-700'
+                      : 'bg-green-100 text-green-700'
+                  }
+                >
+                  {bookingData.paymentMethod === 'cod'
+                    ? 'Pay on Delivery'
+                    : 'Paid'}
                 </Badge>
               </div>
             </div>
@@ -178,12 +240,12 @@ export function ConfirmBooking() {
               <Clock className="w-4 h-4" /> What's Next?
             </h3>
             <div className="space-y-2 text-sm text-gray-700">
-              {bookingData.schedule.type === 'now' ? (
+              {bookingData.schedule?.type === 'now' ? (
                 <>
                   <p>🔍 We're finding the nearest delivery partner</p>
-                  <p>📱 You'll get a call within 5-10 minutes</p>
+                  <p>📱 You'll get a call within 5–10 minutes</p>
                   <p>📍 Track your delivery in real-time</p>
-                  <p>🚚 Pickup within 15-30 minutes</p>
+                  <p>🚚 Pickup within 15–30 minutes</p>
                 </>
               ) : (
                 <>
@@ -197,17 +259,27 @@ export function ConfirmBooking() {
           </CardContent>
         </Card>
 
-        {/* Contact Support */}
+        {/* Support Section */}
         <Card className="bg-white border-gray-200">
           <CardContent className="p-4">
             <h3 className="text-base mb-3 flex items-center gap-2">
               <Phone className="w-4 h-4" /> Need Help?
             </h3>
             <div className="flex gap-3">
-              <Button variant="outline" size="sm" className="flex-1 cursor-pointer">
+              <Button
+                variant="outline"
+                size="sm"
+                className="flex-1 cursor-pointer"
+                onClick={() => console.log(' Support Call Clicked')}
+              >
                 Call Support
               </Button>
-              <Button variant="outline" size="sm" className="flex-1 cursor-pointer">
+              <Button
+                variant="outline"
+                size="sm"
+                className="flex-1 cursor-pointer"
+                onClick={() => console.log(' Live Chat Clicked')}
+              >
                 Live Chat
               </Button>
             </div>
@@ -216,18 +288,18 @@ export function ConfirmBooking() {
       </div>
 
       {/* Bottom Buttons */}
-      <div style={{ padding: "16px", borderTop: "1px solid #ddd" }}>
+      <div style={{ padding: '16px', borderTop: '1px solid #ddd' }}>
         <Button
           className="w-full bg-blue-600 hover:bg-blue-700 cursor-pointer mb-2"
           onClick={handleTrackDelivery}
           style={{
-            width: "100%",
-            padding: "12px",
-            background: "#3b82f6", // blue color
-            color: "#fff",
-            border: "none",
-            borderRadius: "8px",
-            cursor: "pointer",
+            width: '100%',
+            padding: '12px',
+            background: '#3b82f6',
+            color: '#fff',
+            border: 'none',
+            borderRadius: '8px',
+            cursor: 'pointer',
           }}
         >
           Track Delivery
@@ -236,19 +308,18 @@ export function ConfirmBooking() {
           onClick={handleBookAnother}
           className="w-full bg-blue-600 hover:bg-blue-700 cursor-pointer"
           style={{
-            width: "100%",
-            padding: "12px",
-            background: "#3b82f6", // blue color
-            color: "#fff",
-            border: "none",
-            borderRadius: "8px",
-            cursor: "pointer",
+            width: '100%',
+            padding: '12px',
+            background: '#3b82f6',
+            color: '#fff',
+            border: 'none',
+            borderRadius: '8px',
+            cursor: 'pointer',
           }}
         >
           Book Another Delivery
         </Button>
       </div>
-
     </div>
   );
 }
