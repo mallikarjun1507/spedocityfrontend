@@ -6,14 +6,12 @@ import {
 } from "@react-google-maps/api";
 import { MapPin, Search } from "lucide-react";
 import { motion } from "motion/react";
-import { useCallback, useRef, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 
-interface DropLocationProps {
-  pickup: string;
-}
+interface DropLocationProps { }
 
 const containerStyle = {
   width: "100%",
@@ -25,7 +23,7 @@ const defaultCenter = {
   lng: 77.5946,
 };
 
-export function DropLocation({ pickup }: DropLocationProps) {
+export function DropLocation({ }: DropLocationProps) {
   const [searchText, setSearchText] = useState("");
   const [selectedLocation, setSelectedLocation] = useState("");
   const [center, setCenter] = useState(defaultCenter);
@@ -38,6 +36,19 @@ export function DropLocation({ pickup }: DropLocationProps) {
 
   const autocompleteRef = useRef<google.maps.places.Autocomplete | null>(null);
   const navigate = useNavigate();
+  const location = useLocation();
+
+  // ✅ UPDATED: Extract pickup data from previous screen
+  const { pickup, pickupCoords } = location.state || {};
+  const [dropCoords, setDropCoords] = useState<{ lat: number; lng: number } | null>(null);
+
+
+  useEffect(() => {
+    // ✅ If pickup coordinates exist, center map there
+    if (pickupCoords && pickupCoords.lat && pickupCoords.lng) {
+      setCenter(pickupCoords);
+    }
+  }, [pickupCoords]);
 
   const { isLoaded } = useJsApiLoader({
     id: "google-map-script",
@@ -45,11 +56,11 @@ export function DropLocation({ pickup }: DropLocationProps) {
     libraries: ["places"],
   });
 
-  // Pricing configuration
-  const BASE_PRICE = 50; // ₹ base fare
-  const PRICE_PER_KM = 15; // ₹ per km
+  // Pricing constants
+  const BASE_PRICE = 50;
+  const PRICE_PER_KM = 15;
 
-  // 🔹 Reverse geocode lat/lng to address
+  // 🔹 Convert lat/lng → address
   const fetchAddressFromLatLng = async (lat: number, lng: number) => {
     const geocoder = new google.maps.Geocoder();
     const results = await new Promise<google.maps.GeocoderResult[]>((resolve) => {
@@ -61,7 +72,7 @@ export function DropLocation({ pickup }: DropLocationProps) {
     return results[0]?.formatted_address || `Lat: ${lat.toFixed(5)}, Lng: ${lng.toFixed(5)}`;
   };
 
-  // 🔹 Get Distance and Duration using Google Distance Matrix API
+  // 🔹 Get distance & duration between pickup & drop
   const fetchDistanceAndTime = async (origin: string, destination: string) => {
     try {
       const service = new google.maps.DistanceMatrixService();
@@ -92,7 +103,7 @@ export function DropLocation({ pickup }: DropLocationProps) {
     }
   };
 
-  // ✅ Handle Continue (Calculate distance + price, then navigate)
+  // ✅ Handle Continue → Calculate fare and navigate
   const handleNext = async () => {
     if (selectedLocation.trim()) {
       const distanceData = await fetchDistanceAndTime(pickup, selectedLocation);
@@ -107,14 +118,13 @@ export function DropLocation({ pickup }: DropLocationProps) {
           price: totalPrice,
         });
 
-        // Save in localStorage (optional)
-        localStorage.setItem("drop", selectedLocation);
-
-        // Navigate with all dynamic data
+        // ✅ Navigate to VehicleSelection with full data
         navigate("/vehicleSelection", {
           state: {
             pickup,
+            pickupCoords,
             drop: selectedLocation,
+            dropCoords,
             distance: distanceData.distanceText,
             duration: distanceData.durationText,
             totalPrice: totalPrice.toFixed(2),
@@ -126,7 +136,7 @@ export function DropLocation({ pickup }: DropLocationProps) {
     }
   };
 
-  // 📍 Use current GPS location
+  // 📍 Use GPS for drop
   const handleUseCurrentLocation = () => {
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
@@ -134,6 +144,7 @@ export function DropLocation({ pickup }: DropLocationProps) {
           const newCenter = { lat: pos.coords.latitude, lng: pos.coords.longitude };
           setCenter(newCenter);
           setMarkerPosition(newCenter);
+          setDropCoords(newCenter); // ✅ store coordinates
           const address = await fetchAddressFromLatLng(newCenter.lat, newCenter.lng);
           setSelectedLocation(address);
           setSearchText(address);
@@ -143,41 +154,59 @@ export function DropLocation({ pickup }: DropLocationProps) {
     } else alert("Geolocation not supported by your browser.");
   };
 
-  // 📍 Handle place selected from autocomplete
+
+  // 📍 Autocomplete place changed
   const handlePlaceChanged = () => {
     const place = autocompleteRef.current?.getPlace();
     if (place && place.geometry && place.geometry.location) {
       const newPos = { lat: place.geometry.location.lat(), lng: place.geometry.location.lng() };
       setCenter(newPos);
       setMarkerPosition(newPos);
+      setDropCoords(newPos); // ✅ store coordinates
       const address = place.formatted_address || "Selected Location";
       setSelectedLocation(address);
       setSearchText(address);
     }
   };
 
-  // 📍 Handle marker drag
   const handleMarkerDragEnd = useCallback(async (e: google.maps.MapMouseEvent) => {
     if (e.latLng) {
       const pos = { lat: e.latLng.lat(), lng: e.latLng.lng() };
       setMarkerPosition(pos);
+      setDropCoords(pos); // ✅ store coordinates
       const address = await fetchAddressFromLatLng(pos.lat, pos.lng);
       setSelectedLocation(address);
       setSearchText(address);
     }
   }, []);
 
-  // 📍 Handle map click
+
+  // 📍 Map click
   const handleMapClick = async (e: google.maps.MapMouseEvent) => {
     if (e.latLng) {
       const pos = { lat: e.latLng.lat(), lng: e.latLng.lng() };
       setMarkerPosition(pos);
       setCenter(pos);
+      setDropCoords(pos); // ✅ store coordinates
       const address = await fetchAddressFromLatLng(pos.lat, pos.lng);
       setSelectedLocation(address);
       setSearchText(address);
     }
   };
+
+
+  useEffect(() => {
+    const handleBeforeUnload = (event: BeforeUnloadEvent) => {
+      event.preventDefault();
+      event.returnValue = ""; // required for Chrome
+    };
+
+    window.addEventListener("beforeunload", handleBeforeUnload);
+
+    return () => {
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+    };
+  }, []);
 
   return (
     <div className="flex flex-col h-full bg-gray-50">
@@ -187,7 +216,7 @@ export function DropLocation({ pickup }: DropLocationProps) {
           <h1 className="text-lg font-semibold text-gray-800">Drop Location</h1>
         </div>
 
-        {/* Route Summary */}
+        {/* ✅ Route Summary showing pickup from previous screen */}
         <div className="bg-gray-50 rounded-lg p-4 mt-4">
           <div className="flex items-start gap-3">
             <div className="flex flex-col items-center pt-1">
@@ -198,7 +227,9 @@ export function DropLocation({ pickup }: DropLocationProps) {
             <div className="flex-1 space-y-4">
               <div>
                 <p className="text-xs text-gray-500">From</p>
-                <p className="text-sm">{pickup || "Pickup not selected"}</p>
+                <p className="text-sm font-medium text-gray-800">
+                  {pickup || "Pickup not selected"}
+                </p>
               </div>
               <div>
                 <p className="text-xs text-gray-500">To</p>
@@ -209,7 +240,7 @@ export function DropLocation({ pickup }: DropLocationProps) {
             </div>
           </div>
 
-          {/* 🧭 Live distance info */}
+          {/* ✅ Show distance, time, and price dynamically */}
           {distanceInfo && (
             <div className="mt-3 p-3 bg-blue-50 rounded-lg">
               <p className="text-sm text-gray-700">
@@ -226,7 +257,7 @@ export function DropLocation({ pickup }: DropLocationProps) {
         </div>
       </div>
 
-      {/* Google Map */}
+      {/* Map */}
       <div className="h-64 relative">
         {isLoaded ? (
           <GoogleMap
@@ -248,7 +279,6 @@ export function DropLocation({ pickup }: DropLocationProps) {
           </div>
         )}
 
-        {/* Use Current Location Button */}
         <Button
           onClick={handleUseCurrentLocation}
           className="absolute bottom-4 right-4 bg-white text-gray-900 shadow-md hover:bg-gray-50"
@@ -259,7 +289,7 @@ export function DropLocation({ pickup }: DropLocationProps) {
         </Button>
       </div>
 
-      {/* Search Input */}
+      {/* Search */}
       <div className="p-6">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -278,7 +308,6 @@ export function DropLocation({ pickup }: DropLocationProps) {
                   value={searchText}
                   onChange={(e) => setSearchText(e.target.value)}
                   className="pl-10 bg-white"
-                  autoFocus
                 />
               </Autocomplete>
             ) : (
@@ -288,21 +317,12 @@ export function DropLocation({ pickup }: DropLocationProps) {
         </motion.div>
       </div>
 
-      {/* Continue Button */}
+      {/* Continue */}
       <div className="p-6 bg-white border-t mt-auto">
         <Button
           onClick={handleNext}
           disabled={!selectedLocation.trim()}
           className="w-full bg-blue-600 hover:bg-blue-700 cursor-pointer"
-          style={{
-            width: "100%",
-            padding: "12px",
-            background: "#3b82f6",
-            color: "#fff",
-            border: "none",
-            borderRadius: "8px",
-            cursor: "pointer",
-          }}
         >
           Continue
         </Button>

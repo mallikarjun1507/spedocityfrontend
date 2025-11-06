@@ -6,13 +6,14 @@ import {
 } from "@react-google-maps/api";
 import { Briefcase, Clock, Home, MapPin, Search } from "lucide-react";
 import { motion } from "motion/react";
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { useNavigate } from "react-router-dom"; // 🟩 NEW
 import { Button } from "../ui/button";
 import { Card, CardContent } from "../ui/card";
 import { Input } from "../ui/input";
 
 interface PickupSelectionProps {
-  onNext: (pickup: string, lat?: number, lng?: number) => void; // ✅ updated
+  onNext: (pickup: string, lat?: number, lng?: number) => void; // ✅ UPDATED
   onBack: () => void;
   initialPickup?: string;
 }
@@ -55,23 +56,23 @@ const defaultCenter = {
 };
 
 export function PickupSelection({ onNext, onBack, initialPickup }: PickupSelectionProps) {
+  const navigate = useNavigate();
   const [searchText, setSearchText] = useState("");
   const [selectedLocation, setSelectedLocation] = useState(initialPickup || "");
   const [center, setCenter] = useState(defaultCenter);
   const [markerPosition, setMarkerPosition] = useState(defaultCenter);
 
-  // ✅ new: track selected lat/lng separately
   const [selectedLatLng, setSelectedLatLng] = useState<{ lat: number; lng: number } | null>(defaultCenter);
 
   const autocompleteRef = useRef<google.maps.places.Autocomplete | null>(null);
 
   const { isLoaded } = useJsApiLoader({
     id: "google-map-script",
-    googleMapsApiKey: "AIzaSyBHyUtxzdJUQjDk8up2cQDM1emSxgrjhIA", 
+    googleMapsApiKey: "AIzaSyBHyUtxzdJUQjDk8up2cQDM1emSxgrjhIA",
     libraries: ["places"]
   });
 
-  // ✅ Reverse geocode to get address from lat/lng
+  // ✅ UPDATED
   const fetchAddressFromLatLng = async (lat: number, lng: number) => {
     const geocoder = new google.maps.Geocoder();
     const response = await new Promise<google.maps.GeocoderResult[]>((resolve, reject) => {
@@ -83,15 +84,24 @@ export function PickupSelection({ onNext, onBack, initialPickup }: PickupSelecti
     return response[0]?.formatted_address || `Lat: ${lat.toFixed(5)}, Lng: ${lng.toFixed(5)}`;
   };
 
-  // ✅ Continue button now passes lat/lng
   const handleNext = () => {
     if (selectedLocation.trim()) {
-      if (selectedLatLng) onNext(selectedLocation, selectedLatLng.lat, selectedLatLng.lng);
-      else onNext(selectedLocation);
+      if (selectedLatLng) {
+        navigate("/drop-location", {
+          state: {
+            pickup: selectedLocation,
+            pickupCoords: selectedLatLng,
+          },
+        });
+      } else {
+        navigate("/drop-location", {
+          state: { pickup: selectedLocation },
+        });
+      }
     }
   };
 
-  // ✅ when selecting a saved address
+
   const selectAddress = async (addressObj: typeof savedAddresses[0]) => {
     setSelectedLocation(addressObj.address);
     const newPos = { lat: addressObj.lat, lng: addressObj.lng };
@@ -101,22 +111,79 @@ export function PickupSelection({ onNext, onBack, initialPickup }: PickupSelecti
   };
 
   const handleUseCurrentLocation = () => {
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        async (pos) => {
-          const newCenter = {
-            lat: pos.coords.latitude,
-            lng: pos.coords.longitude
-          };
-          setCenter(newCenter);
-          setMarkerPosition(newCenter);
-          setSelectedLatLng(newCenter);
-          const address = await fetchAddressFromLatLng(newCenter.lat, newCenter.lng);
+    if (!("geolocation" in navigator)) {
+      alert("Geolocation is not supported by your browser.");
+      return;
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      async (pos) => {
+        const { latitude, longitude, accuracy } = pos.coords;
+
+        console.log(" GPS Location:", latitude, longitude, "Accuracy:", accuracy, "meters");
+
+        // If accuracy is poor (>1000m), fallback to Google Geolocation API
+        if (accuracy > 1000) {
+          try {
+            const response = await fetch(
+              `https://www.googleapis.com/geolocation/v1/geolocate?key=${import.meta.env.VITE_GOOGLE_MAPS_API_KEY}`,
+              { method: "POST" }
+            );
+            const data = await response.json();
+            if (data?.location) {
+              console.log("🌐 Fallback Accurate Location:", data.location);
+              const newCenter = {
+                lat: data.location.lat,
+                lng: data.location.lng
+              };
+              setCenter(newCenter);
+              setMarkerPosition(newCenter);
+              setSelectedLatLng(newCenter);
+              const address = await fetchAddressFromLatLng(newCenter.lat, newCenter.lng);
+              setSelectedLocation(address);
+              return;
+            }
+          } catch (err) {
+            console.warn("Google Geolocation API fallback failed:", err);
+          }
+        }
+
+        // ✅ Normal accurate location
+        const newCenter = { lat: latitude, lng: longitude };
+        setCenter(newCenter);
+        setMarkerPosition(newCenter);
+        setSelectedLatLng(newCenter);
+
+        try {
+          const address = await fetchAddressFromLatLng(latitude, longitude);
           setSelectedLocation(address);
-        },
-        () => alert("Unable to fetch location. Please enable GPS.")
-      );
-    } else alert("Geolocation not supported by your browser.");
+        } catch (err) {
+          console.error(" Reverse geocoding failed:", err);
+          alert("Unable to fetch address. Please try again.");
+        }
+      },
+      (error) => {
+        console.error("Geolocation Error:", error);
+        switch (error.code) {
+          case error.PERMISSION_DENIED:
+            alert("Permission denied. Please allow location access in browser settings.");
+            break;
+          case error.POSITION_UNAVAILABLE:
+            alert("Location unavailable. Try again later.");
+            break;
+          case error.TIMEOUT:
+            alert("Request timed out. Please try again.");
+            break;
+          default:
+            alert("An unknown error occurred while fetching location.");
+        }
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 15000,
+        maximumAge: 0
+      }
+    );
   };
 
   const handlePlaceChanged = () => {
@@ -128,12 +195,11 @@ export function PickupSelection({ onNext, onBack, initialPickup }: PickupSelecti
       };
       setCenter(newPos);
       setMarkerPosition(newPos);
-      setSelectedLatLng(newPos);
+      setSelectedLatLng(newPos); // ✅ UPDATED
       setSelectedLocation(place.formatted_address || "");
     }
   };
 
-  // ✅ Drag marker update
   const handleMarkerDragEnd = useCallback(async (e: google.maps.MapMouseEvent) => {
     if (!e.latLng) return;
     const lat = e.latLng.lat();
@@ -141,12 +207,11 @@ export function PickupSelection({ onNext, onBack, initialPickup }: PickupSelecti
     const newPos = { lat, lng };
     setMarkerPosition(newPos);
     setCenter(newPos);
-    setSelectedLatLng(newPos);
+    setSelectedLatLng(newPos); // ✅ UPDATED
     const address = await fetchAddressFromLatLng(lat, lng);
     setSelectedLocation(address);
   }, []);
 
-  // ✅ Click map update
   const handleMapClick = useCallback(async (e: google.maps.MapMouseEvent) => {
     if (!e.latLng) return;
     const lat = e.latLng.lat();
@@ -154,10 +219,26 @@ export function PickupSelection({ onNext, onBack, initialPickup }: PickupSelecti
     const newPos = { lat, lng };
     setMarkerPosition(newPos);
     setCenter(newPos);
-    setSelectedLatLng(newPos);
+    setSelectedLatLng(newPos); // ✅ UPDATED
     const address = await fetchAddressFromLatLng(lat, lng);
     setSelectedLocation(address);
   }, []);
+
+
+
+  useEffect(() => {
+    const handleBeforeUnload = (event: BeforeUnloadEvent) => {
+      event.preventDefault();
+      event.returnValue = ""; // required for Chrome
+    };
+
+    window.addEventListener("beforeunload", handleBeforeUnload);
+
+    return () => {
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+    };
+  }, []);
+
 
   return (
     <div className="flex flex-col h-full bg-gray-50">
@@ -228,9 +309,8 @@ export function PickupSelection({ onNext, onBack, initialPickup }: PickupSelecti
               {savedAddresses.map((address) => (
                 <Card
                   key={address.id}
-                  className={`bg-white border cursor-pointer transition-colors ${
-                    selectedLocation === address.address ? "border-blue-500 bg-blue-50" : "border-gray-200 hover:border-gray-300"
-                  }`}
+                  className={`bg-white border cursor-pointer transition-colors ${selectedLocation === address.address ? "border-blue-500 bg-blue-50" : "border-gray-200 hover:border-gray-300"
+                    }`}
                   onClick={() => selectAddress(address)}
                 >
                   <CardContent className="p-4">
@@ -256,9 +336,8 @@ export function PickupSelection({ onNext, onBack, initialPickup }: PickupSelecti
               {recentLocations.map((location, index) => (
                 <Card
                   key={index}
-                  className={`bg-white border cursor-pointer transition-colors ${
-                    selectedLocation === location ? "border-blue-500 bg-blue-50" : "border-gray-200 hover:border-gray-300"
-                  }`}
+                  className={`bg-white border cursor-pointer transition-colors ${selectedLocation === location ? "border-blue-500 bg-blue-50" : "border-gray-200 hover:border-gray-300"
+                    }`}
                   onClick={() => setSelectedLocation(location)}
                 >
                   <CardContent className="p-4">

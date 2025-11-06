@@ -10,22 +10,45 @@ import {
 } from 'lucide-react';
 import { motion } from 'motion/react';
 import { useState } from 'react';
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom"; // 🆕 added
 import { Badge } from './ui/badge';
 import { Button } from './ui/button';
 import { Card, CardContent } from './ui/card';
 import { Textarea } from './ui/textarea';
 
 interface OrderCompletedProps {
-  orderId: string;
-  amount: number;
-  onBack: () => void;
-  onDone: () => void;
+  orderId?: string;
+  amount?: number;
+  onBack?: () => void;
+  onDone?: () => void;
   onTrackDelivery?: () => void;
   onRebook?: () => void;
 }
 
-export function OrderCompleted({ orderId, amount, onBack, onDone, onTrackDelivery, onRebook }: OrderCompletedProps) {
+export function OrderCompleted({
+  orderId,
+  amount,
+  onBack,
+  onDone,
+  onTrackDelivery,
+  onRebook
+}: OrderCompletedProps) {
+  // 🆕 added
+  const location = useLocation();
+  const storedOrder = JSON.parse(localStorage.getItem("lastOrder") || "{}");
+
+  const bookingData = location.state?.bookingData || storedOrder.bookingData;
+  const finalOrderId = location.state?.orderId || storedOrder.orderId || orderId;
+  const finalAmount = location.state?.amount || storedOrder.amount || amount || 0;
+  const pickup = location.state?.pickup || storedOrder.pickup || bookingData?.pickup || "—";
+  const dropoff = location.state?.dropoff || storedOrder.dropoff || bookingData?.dropoff || "—";
+  const pickupCoords = location.state?.pickupCoords || storedOrder.pickupCoords;
+  const dropCoords = location.state?.dropCoords || storedOrder.dropCoords;
+
+  console.log("Pickup Coords:", pickupCoords);
+  console.log("Drop Coords:", dropCoords);
+
+
   const [rating, setRating] = useState(0);
   const [hoveredRating, setHoveredRating] = useState(0);
   const [comment, setComment] = useState('');
@@ -36,20 +59,18 @@ export function OrderCompleted({ orderId, amount, onBack, onDone, onTrackDeliver
   const tipOptions = [10, 20, 50, 100];
 
   const handleDownloadReceipt = () => {
-    // Mock PDF download
     const link = document.createElement('a');
     link.href = '#';
-    link.download = `spedocity-receipt-${orderId}.pdf`;
+    link.download = `spedocity-receipt-${finalOrderId}.pdf`;
     link.click();
   };
- const handleSubmitRating = () => {
-    // Submit rating and feedback
-    console.log('Rating submitted:', { rating, comment, tipAmount });
-    onDone?.(); // call the passed callback if exists
 
-    // ✅ Navigate to dashboard after submitting
+  const handleSubmitRating = () => {
+    console.log('Rating submitted:', { rating, comment, tipAmount, bookingData });
+    onDone?.();
     navigate('/dashboard');
   };
+
   const formatCurrency = (amount: number) => {
     return `₹${amount}`;
   };
@@ -63,7 +84,7 @@ export function OrderCompleted({ orderId, amount, onBack, onDone, onTrackDeliver
         </div>
       </div>
       <div className="flex-1 overflow-y-auto p-6 pb-24">
-        {/* Success Animation */}
+        {/* ✅ Only these 3 values updated dynamically */}
         <motion.div
           initial={{ scale: 0 }}
           animate={{ scale: 1 }}
@@ -74,7 +95,10 @@ export function OrderCompleted({ orderId, amount, onBack, onDone, onTrackDeliver
             <CheckCircle className="w-12 h-12 text-green-600" />
           </div>
           <h2 className="text-2xl mb-2">Delivery Completed!</h2>
-          <p className="text-gray-600">Your package has been delivered successfully</p>
+          <p className="text-gray-600">
+            Your package from {bookingData?.pickup || 'Pickup'} to {bookingData?.dropoff || 'Drop'}
+            has been delivered successfully
+          </p>
         </motion.div>
 
         {/* Order Summary */}
@@ -94,16 +118,22 @@ export function OrderCompleted({ orderId, amount, onBack, onDone, onTrackDeliver
               <div className="space-y-3">
                 <div className="flex justify-between">
                   <span className="text-gray-600">Order ID</span>
-                  <span className="font-medium">#{orderId}</span>
+                  <span className="font-medium">#{finalOrderId}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-600">Total Amount</span>
-                  <span className="font-medium">{formatCurrency(amount)}</span>
+                  <span className="font-medium">{formatCurrency(finalAmount)}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-600">Delivery Time</span>
-                  <span className="font-medium">28 minutes</span>
+                  <span className="text-gray-600">Pickup</span>
+                  <span className="font-medium">{pickup}</span>
                 </div>
+
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Drop</span>
+                  <span className="font-medium">{dropoff}</span>
+                </div>
+
                 <div className="flex justify-between">
                   <span className="text-gray-600">Date & Time</span>
                   <span className="font-medium">{new Date().toLocaleString()}</span>
@@ -112,6 +142,7 @@ export function OrderCompleted({ orderId, amount, onBack, onDone, onTrackDeliver
             </CardContent>
           </Card>
         </motion.div>
+
 
         {/* Digital Receipt */}
         <motion.div
@@ -316,7 +347,7 @@ export function OrderCompleted({ orderId, amount, onBack, onDone, onTrackDeliver
       </div>
 
       {/* Submit Button */}
-       <div className="fixed bottom-0 left-0 right-0 p-6 bg-white border-t">
+      <div className="fixed bottom-0 left-0 right-0 p-6 bg-white border-t">
         <Button
           onClick={handleSubmitRating}
           className="w-full bg-blue-600 hover:bg-blue-700 cursor-pointer"
